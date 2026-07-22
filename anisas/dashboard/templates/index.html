@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANISAS — Autonomous Network Intelligence & Security Assessment System</title>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--bg2:#0f1629;--card:#141b2d;--card2:#1a2340;--border:#1e2d4a;
+  --text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--accent2:#60a5fa;
+  --green:#22c55e;--green2:#4ade80;--red:#ef4444;--red2:#f87171;
+  --orange:#f97316;--yellow:#eab308;--purple:#a855f7;--cyan:#06b6d4;
+  --glow:0 0 20px rgba(59,130,246,0.15);
+}
+html,body{height:100%}
+body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+
+.header{background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:20px;position:relative;z-index:20}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.header .logo{display:flex;align-items:center;gap:10px}
+.header .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;letter-spacing:-0.5px}
+.header h1{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.header .subtitle{color:var(--muted);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:500}
+.header .version{margin-left:auto;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:20px;font-size:10px;color:var(--muted);font-weight:600}
+
+.main{display:grid;grid-template-columns:300px 1fr 340px;grid-template-rows:1fr;height:calc(100vh - 56px);gap:1px;background:var(--border)}
+
+.panel{background:var(--card);overflow:hidden;display:flex;flex-direction:column}
+.panel-header{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.panel-header::before{content:'';width:3px;height:12px;background:var(--accent);border-radius:2px}
+
+.input-section{padding:16px;display:flex;gap:8px;flex-shrink:0}
+.input-section input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:13px;outline:none;transition:all 0.2s}
+.input-section input:focus{border-color:var(--accent);box-shadow:var(--glow)}
+.input-section input::placeholder{color:var(--muted)}
+
+.btn{padding:10px 18px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#2563eb);color:#fff;box-shadow:0 2px 10px rgba(59,130,246,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,0.4)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-secondary:disabled{opacity:0.3;cursor:not-allowed}
+
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin:12px 16px 0;flex-shrink:0}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:2px;transition:width 0.5s ease}
+
+.module-list{padding:8px 12px;overflow-y:auto;flex:1}
+.module-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:2px;font-size:12px;transition:all 0.2s;cursor:default}
+.module-item:hover{background:var(--bg)}
+.module-item .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid transparent}
+.module-item .status-dot.pending{background:var(--border);border-color:var(--border)}
+.module-item .status-dot.running{background:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(59,130,246,0.5);animation:pulse 1.5s infinite}
+.module-item .status-dot.complete{background:var(--green);border-color:var(--green);box-shadow:0 0 6px rgba(34,197,94,0.3)}
+.module-item .status-dot.failed{background:var(--red);border-color:var(--red)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.85)}}
+.module-item .name{font-weight:600;min-width:60px}
+.module-item .label{color:var(--muted);font-size:11px;margin-left:auto}
+.module-item .module-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+
+.export-btns{padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--border);flex-shrink:0}
+.export-btns .btn{flex:1;text-align:center}
+
+.scan-info{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.scan-info .info-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0}
+.scan-info .info-row .key{color:var(--muted)}
+.scan-info .info-row .val{color:var(--text);font-weight:600;font-family:'Courier New',monospace}
+
+#topology{width:100%;height:100%}
+
+.perimeter-overlay{position:absolute;top:50px;right:12px;background:rgba(20,27,45,0.95);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:11px;z-index:10;backdrop-filter:blur(10px)}
+.perimeter-overlay .po-title{font-weight:700;margin-bottom:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-size:10px}
+.perimeter-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;margin:2px;border:1px solid transparent}
+.perimeter-badge.active{background:rgba(34,197,94,0.15);color:var(--green2);border-color:rgba(34,197,94,0.3)}
+.perimeter-badge.inactive{background:rgba(100,116,139,0.1);color:var(--muted);border-color:var(--border)}
+.perimeter-badge .dot{width:6px;height:6px;border-radius:50%}
+.perimeter-badge.active .dot{background:var(--green)}
+.perimeter-badge.inactive .dot{background:var(--muted)}
+
+.log-panel{display:flex;flex-direction:column;height:100%}
+.log-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.log-tab{flex:1;padding:10px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);cursor:pointer;transition:all 0.2s;border-bottom:2px solid transparent}
+.log-tab:hover{color:var(--text)}
+.log-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.log-content{flex:1;overflow-y:auto;padding:8px 12px;font-family:'Cascadia Code','Fira Code','Courier New',monospace;font-size:11px;line-height:1.7}
+.log-content::-webkit-scrollbar{width:4px}
+.log-content::-webkit-scrollbar-track{background:transparent}
+.log-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.log-entry{padding:3px 0;border-bottom:1px solid rgba(30,45,74,0.3);display:flex;gap:8px;align-items:flex-start}
+.log-entry .ts{color:var(--muted);white-space:nowrap;font-size:10px;min-width:65px}
+.log-entry .mod{color:var(--accent2);font-weight:700;white-space:nowrap;min-width:70px}
+.log-entry .msg{flex:1}
+.log-entry .running{color:var(--accent2)}
+.log-entry .complete{color:var(--green2)}
+.log-entry .failed{color:var(--red2)}
+.log-entry .warning{color:var(--yellow)}
+
+.summary-panel{overflow-y:auto;flex:1}
+.summary-panel::-webkit-scrollbar{width:4px}
+.summary-panel::-webkit-scrollbar-track{background:transparent}
+.summary-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px}
+.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;transition:all 0.3s;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card .value{font-size:28px;font-weight:800;letter-spacing:-1px}
+.stat-card .label{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.stat-card.danger::before{background:var(--red)}
+.stat-card.danger .value{color:var(--red)}
+.stat-card.warning::before{background:var(--orange)}
+.stat-card.warning .value{color:var(--orange)}
+.stat-card.success::before{background:var(--green)}
+.stat-card.success .value{color:var(--green)}
+.stat-card.info::before{background:var(--accent)}
+.stat-card.info .value{color:var(--accent)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-card.purple .value{color:var(--purple)}
+
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:12px 16px 6px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:2px;height:10px;border-radius:1px;background:var(--accent)}
+
+.threat-list{padding:0 16px}
+.threat-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:11px;line-height:1.5;transition:all 0.2s}
+.threat-item:hover{border-color:var(--accent)}
+.threat-item.critical{border-left:3px solid var(--red);background:linear-gradient(90deg,rgba(239,68,68,0.05),transparent)}
+.threat-item.high{border-left:3px solid var(--orange);background:linear-gradient(90deg,rgba(249,115,22,0.05),transparent)}
+.threat-item.medium{border-left:3px solid var(--yellow);background:linear-gradient(90deg,rgba(234,179,8,0.05),transparent)}
+.threat-item.low{border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(34,197,94,0.05),transparent)}
+.threat-item .threat-label{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
+.threat-item.critical .threat-label{color:var(--red)}
+.threat-item.high .threat-label{color:var(--orange)}
+.threat-item.medium .threat-label{color:var(--yellow)}
+
+.recommendations{padding:0 16px 16px}
+.rec-item{font-size:11px;padding:8px 0;border-bottom:1px solid rgba(30,45,74,0.3);line-height:1.5;display:flex;gap:8px}
+.rec-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:650px;max-height:80vh;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5)}
+.modal-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--card2)}
+.modal-header h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.modal-header h3::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.modal-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.modal-close:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.modal-body{padding:20px 24px;overflow-y:auto;max-height:calc(80vh - 60px)}
+.modal-body::-webkit-scrollbar{width:4px}
+.modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(30,45,74,0.3);font-size:12px}
+.detail-row .key{color:var(--muted);font-weight:500}
+.detail-row .val{font-weight:600;text-align:right;max-width:60%}
+.detail-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);padding:14px 0 6px;border-bottom:1px solid var(--border);margin-top:8px}
+.port-badge{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;margin:2px;font-size:10px;font-family:'Courier New',monospace}
+.risk-badge{display:inline-block;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:0.5px}
+.risk-badge.CRITICAL{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.risk-badge.HIGH{background:rgba(249,115,22,0.15);color:var(--orange);border:1px solid rgba(249,115,22,0.3)}
+.risk-badge.MEDIUM{background:rgba(234,179,8,0.15);color:var(--yellow);border:1px solid rgba(234,179,8,0.3)}
+.risk-badge.LOW{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+
+.empty-state{color:var(--muted);padding:30px;text-align:center;font-size:12px;line-height:1.6}
+.empty-state .icon{font-size:32px;margin-bottom:10px;opacity:0.3}
+
+.topo-legend{position:absolute;bottom:12px;left:12px;background:rgba(20,27,45,0.95);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:10px;z-index:10;backdrop-filter:blur(10px)}
+.topo-legend .legend-title{font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-size:9px}
+.topo-legend .legend-item{display:flex;align-items:center;gap:8px;padding:2px 0}
+.topo-legend .legend-dot{width:8px;height:8px;border-radius:50%}
+
+.topo-stats{position:absolute;bottom:12px;right:12px;background:rgba(20,27,45,0.95);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:10px;z-index:10;backdrop-filter:blur(10px);display:flex;gap:16px}
+.topo-stats .ts-item{text-align:center}
+.topo-stats .ts-val{font-size:18px;font-weight:800}
+.topo-stats .ts-label{color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-size:8px;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">A</div>
+    <div>
+      <h1>ANISAS</h1>
+    </div>
+  </div>
+  <span class="subtitle">Autonomous Network Intelligence & Security Assessment System</span>
+  <span class="version">v1.0.0</span>
+</div>
+
+<div class="main">
+  <!-- Left Panel -->
+  <div class="panel">
+    <div class="input-section">
+      <input type="text" id="targetIp" placeholder="Target IP address..." value="192.168.1.1">
+      <button class="btn btn-primary" id="startBtn" onclick="startScan()">Scan</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="panel-header">Pipeline Modules</div>
+    <div class="module-list" id="moduleList">
+      <div class="module-item" id="mod-m1">
+        <span class="status-dot pending" id="dot-m1"></span>
+        <span class="module-icon" style="background:rgba(59,130,246,0.15);color:var(--accent)">01</span>
+        <span class="name">ASN & ISP</span>
+        <span class="label">Recon</span>
+      </div>
+      <div class="module-item" id="mod-m2">
+        <span class="status-dot pending" id="dot-m2"></span>
+        <span class="module-icon" style="background:rgba(6,182,212,0.15);color:var(--cyan)">02</span>
+        <span class="name">Network Recon</span>
+        <span class="label">Discovery</span>
+      </div>
+      <div class="module-item" id="mod-m3">
+        <span class="status-dot pending" id="dot-m3"></span>
+        <span class="module-icon" style="background:rgba(239,68,68,0.15);color:var(--red)">03</span>
+        <span class="name">Perimeter</span>
+        <span class="label">Defense</span>
+      </div>
+      <div class="module-item" id="mod-m4">
+        <span class="status-dot pending" id="dot-m4"></span>
+        <span class="module-icon" style="background:rgba(249,115,22,0.15);color:var(--orange)">04</span>
+        <span class="name">IoT Fingerprint</span>
+        <span class="label">Devices</span>
+      </div>
+      <div class="module-item" id="mod-m5">
+        <span class="status-dot pending" id="dot-m5"></span>
+        <span class="module-icon" style="background:rgba(168,85,247,0.15);color:var(--purple)">05</span>
+        <span class="name">Wireless Intel</span>
+        <span class="label">RF</span>
+      </div>
+      <div class="module-item" id="mod-m6">
+        <span class="status-dot pending" id="dot-m6"></span>
+        <span class="module-icon" style="background:rgba(34,197,94,0.15);color:var(--green)">06</span>
+        <span class="name">AI/ML Engine</span>
+        <span class="label">Analytics</span>
+      </div>
+    </div>
+    <div class="scan-info" id="scanInfo" style="display:none">
+      <div class="info-row"><span class="key">Target</span><span class="val" id="info-target">—</span></div>
+      <div class="info-row"><span class="key">Scan ID</span><span class="val" id="info-scanid">—</span></div>
+      <div class="info-row"><span class="key">Duration</span><span class="val" id="info-duration">—</span></div>
+    </div>
+    <div class="export-btns">
+      <button class="btn btn-secondary" onclick="exportJSON()" id="exportJsonBtn" disabled>JSON</button>
+      <button class="btn btn-secondary" onclick="exportPDF()" id="exportPdfBtn" disabled>PDF</button>
+    </div>
+  </div>
+
+  <!-- Center: Topology -->
+  <div class="panel" style="position:relative">
+    <div class="panel-header">Network Topology</div>
+    <div id="topology"></div>
+    <div class="perimeter-overlay" id="perimeterOverlay">
+      <div class="po-title">Perimeter Defenses</div>
+      <span class="perimeter-badge inactive" id="p-fw"><span class="dot"></span>Firewall</span>
+      <span class="perimeter-badge inactive" id="p-ids"><span class="dot"></span>IDS/IPS</span>
+      <span class="perimeter-badge inactive" id="p-dmz"><span class="dot"></span>DMZ</span>
+      <span class="perimeter-badge inactive" id="p-waf"><span class="dot"></span>WAF</span>
+    </div>
+    <div class="topo-legend">
+      <div class="legend-title">Legend</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> Server</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Workstation</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f97316"></span> Surveillance</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#a855f7"></span> IoT/Embedded</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#eab308"></span> Network Gear</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#64748b"></span> Unclassified</div>
+    </div>
+    <div class="topo-stats">
+      <div class="ts-item"><div class="ts-val" id="ts-hosts">0</div><div class="ts-label">Hosts</div></div>
+      <div class="ts-item"><div class="ts-val" id="ts-subnets">0</div><div class="ts-label">Subnets</div></div>
+      <div class="ts-item"><div class="ts-val" id="ts-ports">0</div><div class="ts-label">Open Ports</div></div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="panel log-panel">
+    <div class="log-tabs">
+      <div class="log-tab active" onclick="switchTab('logs')">Live Logs</div>
+      <div class="log-tab" onclick="switchTab('summary')">Summary</div>
+      <div class="log-tab" onclick="switchTab('threats')">Threats</div>
+    </div>
+
+    <div id="tab-logs" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="log-content" id="logContent">
+        <div class="empty-state"><div class="icon">◉</div>Waiting for scan to start...</div>
+      </div>
+    </div>
+
+    <div id="tab-summary" style="display:none;flex:1;overflow:hidden">
+      <div class="summary-panel">
+        <div class="stat-grid">
+          <div class="stat-card info"><div class="value" id="stat-devices">0</div><div class="label">Devices</div></div>
+          <div class="stat-card danger"><div class="value" id="stat-anomalies">0</div><div class="label">Anomalies</div></div>
+          <div class="stat-card success"><div class="value" id="stat-health">100</div><div class="label">Health</div></div>
+          <div class="stat-card warning"><div class="value" id="stat-critical">0</div><div class="label">Critical</div></div>
+        </div>
+        <div class="section-title">Risk Assessment</div>
+        <div style="padding:0 16px 12px" id="riskAssessment">
+          <div class="empty-state">Scan completed to view risk assessment</div>
+        </div>
+        <div class="section-title">Recommended Mitigations</div>
+        <div class="recommendations" id="recList">
+          <div class="empty-state">Recommendations will appear after scan</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-threats" style="display:none;flex:1;overflow:hidden">
+      <div class="summary-panel">
+        <div class="section-title">Identified Threats</div>
+        <div class="threat-list" id="threatList">
+          <div class="empty-state">No threats detected yet</div>
+        </div>
+        <div class="section-title">Device Classifications</div>
+        <div id="deviceClassList" style="padding:0 16px">
+          <div class="empty-state">Classifications appear after scan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Node Detail Modal -->
+<div class="modal-overlay" id="nodeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Device Details</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+let scanId=null,eventSource=null,network=null,allResults={},scanStartTime=null;
+
+function switchTab(tab){
+  document.querySelectorAll('.log-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.log-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(tab==='logs'?'live':tab))t.classList.add('active')});
+  document.getElementById('tab-logs').style.display=tab==='logs'?'flex':'none';
+  document.getElementById('tab-summary').style.display=tab==='summary'?'flex':'none';
+  document.getElementById('tab-threats').style.display=tab==='threats'?'flex':'none';
+  document.querySelectorAll('.log-tab').forEach(t=>{
+    t.classList.remove('active');
+    if((tab==='logs'&&t.textContent.includes('Live'))||(tab==='summary'&&t.textContent.includes('Summary'))||(tab==='threats'&&t.textContent.includes('Threats')))t.classList.add('active');
+  });
+}
+
+function startScan(){
+  const ip=document.getElementById('targetIp').value.trim();
+  if(!ip)return;
+  scanStartTime=Date.now();
+  document.getElementById('startBtn').disabled=true;
+  document.getElementById('startBtn').textContent='Scanning...';
+  document.getElementById('logContent').innerHTML='';
+  document.getElementById('scanInfo').style.display='block';
+  document.getElementById('progressFill').style.width='0%';
+  resetModuleDots();
+  fetch('/api/v1/scan/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target_ip:ip})})
+  .then(r=>r.json()).then(d=>{
+    scanId=d.scan_id;
+    document.getElementById('info-target').textContent=ip;
+    document.getElementById('info-scanid').textContent=d.scan_id.substring(0,8)+'...';
+    streamLogs();
+  }).catch(e=>console.error(e));
+}
+
+function resetModuleDots(){
+  for(let i=1;i<=6;i++){
+    const d=document.getElementById('dot-m'+i);
+    if(d)d.className='status-dot pending';
+  }
+  document.getElementById('progressFill').style.width='0%';
+}
+
+function streamLogs(){
+  if(!scanId)return;
+  eventSource=new EventSource('/api/v1/scan/stream/'+scanId);
+  eventSource.onmessage=function(e){
+    const data=JSON.parse(e.data);
+    appendLog(data);
+    updateModuleStatus(data);
+    if(scanStartTime){
+      const elapsed=((Date.now()-scanStartTime)/1000).toFixed(1);
+      document.getElementById('info-duration').textContent=elapsed+'s';
+    }
+    if(data.status==='COMPLETE'&&data.module==='Orchestrator'){
+      eventSource.close();
+      document.getElementById('progressFill').style.width='100%';
+      fetchResults();
+    }
+  };
+  eventSource.onerror=function(){setTimeout(streamLogs,2000)};
+}
+
+function appendLog(entry){
+  const el=document.getElementById('logContent');
+  if(el.querySelector('.empty-state'))el.innerHTML='';
+  const cls=entry.status?entry.status.toLowerCase():'';
+  const ts=entry.timestamp?entry.timestamp.split('T')[1].split('.')[0]:'';
+  const line=document.createElement('div');
+  line.className='log-entry';
+  line.innerHTML=`<span class="ts">${ts}</span><span class="mod">[${entry.module||''}]</span><span class="msg ${cls}">${entry.log_message||''}</span>`;
+  el.appendChild(line);
+  el.scrollTop=el.scrollHeight;
+}
+
+function updateModuleStatus(data){
+  const map={'Module-01':'m1','Module-02':'m2','Module-03':'m3','Module-04':'m4','Module-05':'m5','Module-06':'m6'};
+  const key=map[data.module];
+  if(key){
+    const dot=document.getElementById('dot-'+key);
+    if(dot)dot.className='status-dot '+(data.status?data.status.toLowerCase():'running');
+    const modIdx=parseInt(key.replace('m',''));
+    document.getElementById('progressFill').style.width=Math.min((modIdx/6)*100,99)+'%';
+  }
+}
+
+function fetchResults(){
+  if(!scanId)return;
+  fetch('/api/v1/scan/results/'+scanId).then(r=>r.json()).then(d=>{
+    allResults=d;
+    document.getElementById('startBtn').disabled=false;
+    document.getElementById('startBtn').textContent='Scan';
+    document.getElementById('exportJsonBtn').disabled=false;
+    document.getElementById('exportPdfBtn').disabled=false;
+    renderTopology();
+    renderSummary();
+    renderThreats();
+    renderDeviceList();
+  }).catch(e=>console.error(e));
+}
+
+function renderTopology(){
+  const nodes=[],edges=[];
+  const m2=allResults.module2||{};
+  const m6=allResults.module6||{};
+  const clsMap=m6.device_classifications||[];
+  const clsByIp={};clsMap.forEach(c=>{clsByIp[c.ip_address]=c});
+  const subnets=m2.discovered_subnets||[];
+  let totalPorts=0;
+  subnets.forEach(s=>{nodes.push({id:s.cidr,label:s.cidr,group:'subnet',shape:'box',color:{background:'#0f2847',border:'#1e4d8c',highlight:{background:'#1a3a5c',border:'#3b82f6'}},font:{color:'#94a3b8',size:10,face:'system-ui'}, borderWidth:2})});
+  const hosts=m2.active_hosts||[];
+  hosts.forEach(h=>{
+    const ip=h.ip_address;const cls=clsByIp[ip]||{};
+    const devType=cls.predicted_device_type||'device';
+    const risk=cls.risk_category||'LOW';
+    const colorMap={'Server':'#22c55e','Workstation':'#3b82f6','Surveillance Device':'#f97316','IoT/Embedded':'#a855f7','Network Gear':'#eab308','Unclassified':'#64748b'};
+    const riskColor={'CRITICAL':'#ef4444','HIGH':'#f97316','MEDIUM':'#eab308','LOW':'#22c55e'};
+    const sz=Math.min(10+(h.open_ports||[]).length*2,20);
+    nodes.push({id:ip,label:ip+'\n'+devType,group:'device',shape:'dot',size:sz,color:{background:colorMap[devType]||'#64748b',border:riskColor[risk]||'#22c55e',highlight:{background:colorMap[devType]||'#64748b',border:'#fff'}},font:{color:'#e2e8f0',size:10,face:'system-ui'},borderWidth:2});
+    if(h.open_ports)totalPorts+=h.open_ports.length;
+    const parent=subnets.find(s=>{try{const p=s.cidr.split('/');const base=p[0].split('.').map(Number);const host=ip.split('.').map(Number);const mask=parseInt(p[1]);const bits=new Array(32).fill(0);for(let i=0;i<mask;i++)bits[i]=1;const bm=[bits.slice(0,8),bits.slice(8,16),bits.slice(16,24),bits.slice(24,32)].map(b=>parseInt(b.map(x=>x).join(''),2));return base.every((v,i)=>(v&bm[i])===((host[i]||0)&bm[i]))}catch(e){return false}});
+    if(parent)edges.push({from:ip,to:parent.cidr,width:1,color:{color:'#2a3a5c'},smooth:{type:'continuous'}});
+  });
+  const m3=allResults.module3||{};const defs=m3.perimeter_defenses||{};
+  if(defs.firewall&&defs.firewall.detected)nodes.push({id:'firewall',label:'🔥 Firewall',group:'perimeter',shape:'diamond',color:{background:'rgba(239,68,68,0.2)',border:'#ef4444'},size:22,font:{color:'#f87171',size:11},borderWidth:2});
+  if(defs.ids_ips&&defs.ids_ips.detected)nodes.push({id:'ids',label:'🛡 IDS/IPS',group:'perimeter',shape:'diamond',color:{background:'rgba(249,115,22,0.2)',border:'#f97316'},size:22,font:{color:'#fb923c',size:11},borderWidth:2});
+  if(defs.waf&&defs.waf.detected)nodes.push({id:'waf',label:'🔒 WAF',group:'perimeter',shape:'diamond',color:{background:'rgba(168,85,247,0.2)',border:'#a855f7'},size:22,font:{color:'#c084fc',size:11},borderWidth:2});
+  const container=document.getElementById('topology');
+  const data={nodes:new vis.DataSet(nodes),edges:new vis.DataSet(edges)};
+  const options={physics:{enabled:true,solver:'forceAtlas2Based',forceAtlas2Based:{gravitationalConstant:-40,centralGravity:0.008,springLength:160,springConstant:0.02},stabilization:{iterations:150}},interaction:{hover:true,tooltipDelay:200,hideEdgesOnDrag:true},nodes:{font:{face:'system-ui'}},edges:{smooth:{type:'continuous'}}};
+  if(network)network.destroy();
+  network=new vis.Network(container,data,options);
+  network.on('click',function(params){if(params.nodes.length>0)showNodeDetail(params.nodes[0])});
+  updatePerimeterOverlay(defs);
+  document.getElementById('ts-hosts').textContent=hosts.length;
+  document.getElementById('ts-subnets').textContent=subnets.length;
+  document.getElementById('ts-ports').textContent=totalPorts;
+}
+
+function updatePerimeterOverlay(defs){
+  ['firewall','ids_ips','dmz','waf'].forEach(k=>{
+    const el=document.getElementById('p-'+k.replace('_','-'));
+    if(el&&defs[k])el.className='perimeter-badge '+(defs[k].detected?'active':'inactive');
+  });
+}
+
+function renderSummary(){
+  const m6=allResults.module6||{};const s=m6.ai_analytics_summary||{};
+  document.getElementById('stat-devices').textContent=s.total_devices_analyzed||0;
+  document.getElementById('stat-anomalies').textContent=s.anomalies_detected_count||0;
+  document.getElementById('stat-health').textContent=Math.round(s.network_health_score||0);
+  const cls=m6.device_classifications||[];
+  const critical=cls.filter(c=>c.risk_category==='CRITICAL').length;
+  document.getElementById('stat-critical').textContent=critical;
+  const nl=m6.executive_nl_summary||{};
+  const ra=document.getElementById('riskAssessment');
+  if(nl.risk_level){
+    const rl=nl.risk_level.toUpperCase();
+    const cls=rl==='HIGH'||rl==='CRITICAL'?'critical':rl==='MEDIUM'?'high':'low';
+    ra.innerHTML=`<div class="threat-item ${cls}"><div class="threat-label">${nl.risk_level} Risk</div>${nl.overview_paragraph||''}</div>`;
+  }
+  const rl=document.getElementById('recList');rl.innerHTML='';
+  (nl.recommended_mitigations||[]).forEach(m=>{rl.innerHTML+=`<div class="rec-item">${m}</div>`});
+}
+
+function renderThreats(){
+  const m6=allResults.module6||{};const nl=m6.executive_nl_summary||{};
+  const tl=document.getElementById('threatList');tl.innerHTML='';
+  const threats=nl.key_threats_identified||[];
+  if(!threats.length){tl.innerHTML='<div class="empty-state">No threats identified</div>';return}
+  threats.forEach(t=>{
+    const cls=t.toLowerCase().includes('critical')?'critical':t.toLowerCase().includes('high')?'high':'medium';
+    tl.innerHTML+=`<div class="threat-item ${cls}"><div class="threat-label">${cls}</div>${t}</div>`;
+  });
+}
+
+function renderDeviceList(){
+  const m6=allResults.module6||{};const cls=m6.device_classifications||[];
+  const el=document.getElementById('deviceClassList');
+  if(!cls.length){el.innerHTML='<div class="empty-state">No device classifications</div>';return}
+  el.innerHTML='';
+  cls.forEach(c=>{
+    el.innerHTML+=`<div class="detail-row"><span class="key">${c.ip_address}</span><span class="val">${c.predicted_device_type||'Unknown'} <span class="risk-badge ${c.risk_category||'LOW'}" style="font-size:9px;padding:2px 6px">${c.risk_category||'LOW'}</span></span></div>`;
+  });
+}
+
+function showNodeDetail(nodeId){
+  const m2=allResults.module2||{};const m6=allResults.module6||{};const m4=allResults.module4||{};
+  const hosts=m2.active_hosts||[];const clsMap=m6.device_classifications||[];
+  const host=hosts.find(h=>h.ip_address===nodeId);
+  const cls=clsMap.find(c=>c.ip_address===nodeId);
+  const iot=(m4.surveillance_devices||[]).find(d=>d.ip_address===nodeId);
+  document.getElementById('modalTitle').textContent=nodeId;
+  let html='';
+  if(host||cls){
+    const h=host||{};const c=cls||{};
+    html+=`<div class="detail-section">Network Identity</div>`;
+    html+=`<div class="detail-row"><span class="key">IP Address</span><span class="val">${nodeId}</span></div>`;
+    if(h.mac_address)html+=`<div class="detail-row"><span class="key">MAC Address</span><span class="val">${h.mac_address}</span></div>`;
+    if(h.discovery_method)html+=`<div class="detail-row"><span class="key">Discovery Method</span><span class="val">${h.discovery_method}</span></div>`;
+    html+=`<div class="detail-section">Classification</div>`;
+    if(c.predicted_device_type)html+=`<div class="detail-row"><span class="key">Device Type</span><span class="val">${c.predicted_device_type}</span></div>`;
+    if(c.predicted_os)html+=`<div class="detail-row"><span class="key">Operating System</span><span class="val">${c.predicted_os} (${Math.round((c.os_confidence||0)*100)}%)</span></div>`;
+    if(c.calculated_risk_score!==undefined)html+=`<div class="detail-row"><span class="key">Risk Score</span><span class="val"><span class="risk-badge ${c.risk_category}">${c.calculated_risk_score}/10.0 ${c.risk_category}</span></span></div>`;
+    if(c.anomalous_devices_flagged||c.is_anomalous)html+=`<div class="detail-row"><span class="key">Anomaly</span><span class="val" style="color:var(--red)">⚠ ${(c.anomaly_reasons||[]).join(', ')}</span></div>`;
+    if(h.open_ports&&h.open_ports.length){
+      html+=`<div class="detail-section">Open Ports (${h.open_ports.length})</div>`;
+      html+=`<div class="detail-row"><span class="key">Ports</span><span class="val">`;
+      h.open_ports.forEach(p=>{html+=`<span class="port-badge">${p.port}/${p.service||'?'}</span>`});
+      html+=`</span></div>`;
+    }
+    if(h.os_fingerprint&&h.os_fingerprint.raw_os_string)html+=`<div class="detail-row"><span class="key">OS Fingerprint</span><span class="val" style="font-size:10px">${h.os_fingerprint.raw_os_string}</span></div>`;
+  }
+  if(iot){
+    html+=`<div class="detail-section">IoT / Surveillance</div>`;
+    html+=`<div class="detail-row"><span class="key">Vendor</span><span class="val">${iot.identified_vendor||'Unknown'}</span></div>`;
+    html+=`<div class="detail-row"><span class="key">Classification</span><span class="val">${iot.classification||'N/A'}</span></div>`;
+    if(iot.confidence_score)html+=`<div class="detail-row"><span class="key">Confidence</span><span class="val">${Math.round(iot.confidence_score*100)}%</span></div>`;
+    if(iot.cve_vulnerabilities&&iot.cve_vulnerabilities.length){
+      html+=`<div class="detail-section">CVE Vulnerabilities (${iot.cve_vulnerabilities.length})</div>`;
+      iot.cve_vulnerabilities.forEach(c=>{html+=`<div class="detail-row"><span class="key">${c.cve_id}</span><span class="val"><span class="risk-badge ${c.cvss_score>=9?'CRITICAL':c.cvss_score>=7?'HIGH':'MEDIUM'}">${c.cvss_score}</span></span></div>`});
+    }
+    if(iot.possible_device_types)html+=`<div class="detail-row"><span class="key">Possible Types</span><span class="val" style="font-size:10px">${iot.possible_device_types.join(', ')}</span></div>`;
+  }
+  if(!html)html='<div class="empty-state"><div class="icon">◻</div>No detailed data available for this node.</div>';
+  document.getElementById('modalBody').innerHTML=html;
+  document.getElementById('nodeModal').classList.add('active');
+}
+
+function closeModal(){document.getElementById('nodeModal').classList.remove('active')}
+document.getElementById('nodeModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+function exportJSON(){if(scanId)window.location='/api/v1/export/json/'+scanId}
+function exportPDF(){if(scanId)window.location='/api/v1/export/pdf/'+scanId}
+</script>
+</body>
+</html>
