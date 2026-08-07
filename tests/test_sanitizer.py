@@ -11,7 +11,7 @@ class DummyModel(BaseModel):
 def test_sanitize_model_redacts_pii():
     d = DummyModel(
         email="user@example.com",
-        api_key="sk_test_ABC123",
+        api_key="dummy_api_key",
         notes="Observed on 203.0.113.5. Contact admin@example.com for details."
     )
     sanitized = sanitize_model(d)
