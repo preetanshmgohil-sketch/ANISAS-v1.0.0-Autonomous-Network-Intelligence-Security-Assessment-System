@@ -34,3 +34,8 @@ CI and deployment hardening
 Contact and disclosure
 
 For coordinated disclosure or to report an urgent incident, please open an issue and mark it "security" or reach out to the maintainers listed in the repository's README. Provide a secure contact method if needed.
+
+Secret scanning and CI
+
+- The repository runs automated secret scanning in CI using truffleHog. Do not commit secrets into the repository. If a secret is found, rotate it immediately and open an incident with details of rotation.
+- CI workflows avoid printing secrets to logs and use short-lived tokens where possible. Use GitHub Secrets for runtime credentials and enable branch protection to require PR reviews.

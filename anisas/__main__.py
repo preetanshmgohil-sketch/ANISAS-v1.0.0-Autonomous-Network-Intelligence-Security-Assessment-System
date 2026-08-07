@@ -13,8 +13,13 @@ from .engine import run_engine
 
 def _setup_logging(verbose: bool) -> None:
     level = logging.DEBUG if verbose else logging.INFO
-    fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    logging.basicConfig(level=level, format=fmt, stream=sys.stderr)
+    try:
+        from .logging_config import configure_logging
+        configure_logging(level=level)
+    except Exception:
+        # Fallback to basic config if custom configure fails
+        fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        logging.basicConfig(level=level, format=fmt, stream=sys.stderr)
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
