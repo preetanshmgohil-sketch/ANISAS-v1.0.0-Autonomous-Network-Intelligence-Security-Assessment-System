@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 
 import httpx
 from .httpx_client import get_client
+from .cache import get_or_set
 
 from .models import ASNEntry, ISPProfile
 
@@ -56,15 +58,18 @@ async def _fetch_peering(asn: str, client: httpx.AsyncClient) -> list[str]:
 
 
 async def _find_secondary_asns(
-    ip: str, primary_asn: str, client: httpx.AsyncClient
+    ip: str, primary_asn: str, client: httpx.AsyncClient, meta: dict | None = None
 ) -> list[ASNEntry]:
     """Detect additional ASNs serving the same organization.
 
-    Uses bgpview.io search by ASN description / organization to find related ASNs.
+    Accept an optional pre-fetched `meta` dict to avoid refetching ASN metadata
+    when the caller already has it. Uses bgpview.io search by ASN description
+    / organization to find related ASNs.
     """
     try:
-        # Get the org name from the primary ASN metadata
-        meta = await _fetch_asn_meta(primary_asn, client)
+        # Use provided meta when available to avoid duplicate requests
+        if meta is None:
+            meta = await _fetch_asn_meta(primary_asn, client)
         if not meta:
             return []
         description = meta.get("description", "")
@@ -112,8 +117,8 @@ async def build_isp_profile(
     sources_queried: list[str] = []
 
     client = get_client()
-    # Fetch ASN metadata for ISP profile
-    meta = await _fetch_asn_meta(primary.asn, client)
+    # Fetch ASN metadata and then fetch peering + secondary ASNs concurrently.
+    meta = await get_or_set(f"asn_meta:{primary.asn}", lambda: _fetch_asn_meta(primary.asn, client))
 
     noc_contact = ""
     abuse_contact = ""
@@ -125,11 +130,10 @@ async def build_isp_profile(
         if not isp_name:
             isp_name = meta.get("name") or meta.get("description", "")
 
-    # Fetch peering relationships
-    peering = await _fetch_peering(primary.asn, client)
-
-    # Detect secondary ASNs
-    secondary = await _find_secondary_asns(ip, primary.asn, client)
+    # Run peering and secondary detection in parallel, passing meta to avoid refetch
+    peering_task = asyncio.create_task(get_or_set(f"peers:{primary.asn}", lambda: _fetch_peering(primary.asn, client)))
+    secondary_task = asyncio.create_task(_find_secondary_asns(ip, primary.asn, client, meta=meta))
+    peering, secondary = await asyncio.gather(peering_task, secondary_task)
 
     profile = ISPProfile(
         name=isp_name,

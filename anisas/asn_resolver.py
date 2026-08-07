@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import logging
 import re
+import asyncio
 from typing import Any
 
 import httpx
 from .httpx_client import get_client
+from .cache import get_or_set
 
 from .models import ASNEntry
 
@@ -97,15 +99,22 @@ async def _query_bgpview_asn(asn: str, client: httpx.AsyncClient) -> list[str]:
 
 
 async def _query_cymru(ip: str, client: httpx.AsyncClient) -> dict[str, Any] | None:
-    """Query Team Cymru IP-to-ASN mapping as a last-resort fallback."""
+    """Query Team Cymru IP-to-ASN mapping as a last-resort fallback (streaming).
+
+    Use a streaming iterator to avoid loading the entire response into memory
+    when Team Cymru returns large outputs.
+    """
     try:
         resp = await client.get(
             _CYMRU_URL,
             params={"ip": ip},
+            timeout=_TIMEOUT,
         )
         resp.raise_for_status()
-        lines = resp.text.strip().splitlines()
-        for line in lines:
+        # Stream lines instead of reading resp.text to reduce peak memory
+        async for line in resp.aiter_lines():
+            if not line:
+                continue
             if line.startswith("#") or not line.strip():
                 continue
             parsed = _parse_cymru_line(line)
@@ -125,25 +134,40 @@ async def _query_cymru(ip: str, client: httpx.AsyncClient) -> dict[str, Any] | N
 async def resolve_asn(ip: str) -> tuple[list[ASNEntry], list[str], list[str]]:
     """Resolve ASN details and IP prefixes for a target IP.
 
+    Runs provider queries in parallel and then selects the highest-preference
+    successful result. This reduces latency while preserving the original
+    provider preference order (ipinfo -> bgpview -> team-cymru).
+
     Returns:
         (asn_entries, ip_prefixes, sources_queried)
     """
     sources_queried: list[str] = []
     client = get_client()
-    # --- ASN Resolution (try providers in order) ---
-    info: dict[str, Any] | None = None
 
-    info = await _query_ipinfo(ip, client)
-    if info:
+    # Launch provider queries concurrently
+    tasks = [
+        asyncio.create_task(get_or_set(f"ipinfo:{ip}", lambda: _query_ipinfo(ip, client))),
+        asyncio.create_task(get_or_set(f"bgpview_ip:{ip}", lambda: _query_bgpview_ip(ip, client))),
+        asyncio.create_task(get_or_set(f"cymru:{ip}", lambda: _query_cymru(ip, client))),
+    ]
+
+    try:
+        results = await asyncio.gather(*tasks)
+    except Exception as exc:
+        logger.debug("Error while querying providers concurrently: %s", exc)
+        results = [None, None, None]
+
+    info = None
+    # Preference order: ipinfo, bgpview, cymru
+    if results[0]:
+        info = results[0]
         sources_queried.append("ipinfo.io")
-    else:
-        info = await _query_bgpview_ip(ip, client)
-        if info:
-            sources_queried.append("bgpview.io")
-        else:
-            info = await _query_cymru(ip, client)
-            if info:
-                sources_queried.append("team-cymru")
+    elif results[1]:
+        info = results[1]
+        sources_queried.append("bgpview.io")
+    elif results[2]:
+        info = results[2]
+        sources_queried.append("team-cymru")
 
     if not info:
         logger.warning("All ASN resolution providers failed for %s", ip)
@@ -163,7 +187,8 @@ async def resolve_asn(ip: str) -> tuple[list[ASNEntry], list[str], list[str]]:
     if info.get("ip_range"):
         prefixes.append(info["ip_range"])
 
-    bgpview_prefixes = await _query_bgpview_asn(primary_asn.asn, client)
+    # Fetch ASN prefixes from bgpview (may be empty)
+    bgpview_prefixes = await get_or_set(f"bgpview_asn:{primary_asn.asn}", lambda: _query_bgpview_asn(primary_asn.asn, client))
     if bgpview_prefixes:
         sources_queried.append("bgpview.io/asn_prefixes")
         prefixes.extend(bgpview_prefixes)
