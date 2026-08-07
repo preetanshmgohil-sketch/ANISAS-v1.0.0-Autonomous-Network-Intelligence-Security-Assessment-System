@@ -73,6 +73,7 @@ def _send_http_request(
     try:
         if use_https:
             ctx = ssl.create_default_context()
+            ctx.minimum_version = ssl.TLSVersion.TLSv1_2
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
