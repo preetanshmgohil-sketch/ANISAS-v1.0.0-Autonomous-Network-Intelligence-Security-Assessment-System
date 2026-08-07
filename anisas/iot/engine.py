@@ -51,8 +51,19 @@ class IoTSurveillanceEngine:
         # Parse input
         target_subnet, hosts, subnets = self._parse_input(target, module2_data)
 
+        # If no hosts found, return empty report instead of crashing
         if not hosts:
-            raise ValueError(f"No active hosts found for target: {target}")
+            logger.info("No active hosts found — returning empty IoT report for %s", target)
+            return IoTReport(
+                target_subnet=target or "",
+                surveillance_devices=[],
+                predicted_ip_ranges=[],
+                summary=IoTSummary(
+                    total_iot_devices_found=0,
+                    critical_risk_count=0,
+                    high_risk_count=0,
+                ),
+            )
 
         logger.info("Scanning %d hosts across %s for surveillance protocols ...", len(hosts), target_subnet)
 
@@ -199,8 +210,8 @@ class IoTSurveillanceEngine:
                     return self._parse_input(target, data)
                 # Module 1 output — limited data
                 return data.get("target_ip", target), [], []
-            except (json.JSONDecodeError, FileNotFoundError):
-                pass
+            except (json.JSONDecodeError, FileNotFoundError) as e:
+                logger.debug("Could not parse input file %s: %s", target, e)
 
         # CIDR or IP
         import ipaddress

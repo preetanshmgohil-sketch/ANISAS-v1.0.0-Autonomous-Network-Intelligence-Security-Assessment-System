@@ -203,7 +203,7 @@ def fingerprint_ap_via_http(
         try:
             data = sock.recv(2048)
         except socket.timeout:
-            pass
+            pass  # probe response timeout — expected during fingerprinting
         sock.close()
 
         decoded = data.decode("utf-8", errors="replace").lower()
@@ -220,7 +220,7 @@ def fingerprint_ap_via_http(
                 result["vendor"] = vendor
                 break
 
-    except (socket.timeout, OSError):
-        pass
+    except (socket.timeout, OSError) as e:
+        logger.debug("Vendor fingerprint scan failed: %s", e)
 
     return result

@@ -164,7 +164,7 @@ def _render_cover(story, target_ip: str):
         ["3", "Security Perimeter Detection"],
         ["4", "Surveillance & IoT Fingerprinting"],
         ["5", "Wireless Network Intelligence"],
-        ["6", "AI/ML Analytics & Risk Scoring"],
+        ["6", "AI/ML Analytics & OS Classification"],
     ]
     t = Table(toc, colWidths=[0.8 * inch, 5 * inch])
     t.setStyle(TableStyle([
@@ -228,7 +228,9 @@ def _render_module1(story, m1: dict):
     if risk and risk.get("summary_text"):
         story.append(_subsection("AI Risk Assessment"))
         rl = risk.get("risk_level", "Low")
-        story.append(Paragraph(f"<b>Risk Level:</b> {_risk_badge(rl)}", _s["body"]))
+        rs = risk.get("risk_score", 0)
+        score_text = f" ({rs:.1f}/10)" if rs else ""
+        story.append(Paragraph(f"<b>Risk Level:</b> {_risk_badge(rl)}{score_text}", _s["body"]))
         story.append(_body(risk["summary_text"]))
         story.append(Spacer(1, 6))
 
@@ -324,6 +326,30 @@ def _render_module2(story, m2: dict):
                 ["IP", "Port", "Proto", "Service", "Banner"],
                 rows, [1.1*inch, 0.6*inch, 0.5*inch, 0.9*inch, 3.5*inch]))
 
+        # OS Distribution summary
+        story.append(Spacer(1, 6))
+        story.append(_subsection("OS Distribution Summary"))
+        os_counts: dict[str, list[str]] = {}
+        for h in hosts:
+            fp = h.get("os_fingerprint", {})
+            os_name = fp.get("predicted_os", "Unknown")
+            if os_name not in os_counts:
+                os_counts[os_name] = []
+            os_counts[os_name].append(h.get("ip_address", ""))
+        if os_counts:
+            rows = []
+            for os_name, ips in sorted(os_counts.items(), key=lambda x: -len(x[1])):
+                ip_list = ", ".join(ips[:5])
+                if len(ips) > 5:
+                    ip_list += f" ... (+{len(ips) - 5} more)"
+                rows.append([os_name, str(len(ips)), ip_list])
+            story.append(_make_table(
+                ["Operating System", "Count", "Hosts"],
+                rows, [1.8*inch, 0.8*inch, 4.0*inch]))
+            story.append(Spacer(1, 4))
+        else:
+            story.append(_body("No OS data available."))
+
     # Scan metadata
     meta = m2.get("scan_metadata", {})
     if meta:
@@ -337,6 +363,60 @@ def _render_module2(story, m2: dict):
     story.append(Spacer(1, 10))
 
 
+def _fw_analysis_text(detected, fw_type, behavior):
+    if not detected:
+        return ("No firewall detected. The target appears to respond to all probes without "
+                "filtering, suggesting no perimeter access control is in place.")
+    if "stateful" in str(behavior).lower():
+        return ("Stateful firewall detected. The device maintains connection state tables and "
+                "blocks unsolicited inbound packets. High filtering confidence.")
+    if "packet filtering" in str(behavior).lower():
+        return ("Packet filtering firewall detected. The device examines individual packets "
+                "against ACL rules. Moderate filtering confidence.")
+    return f"Firewall detected ({fw_type}) with {behavior} filtering behavior."
+
+
+def _ids_analysis_text(detected, action):
+    if not detected:
+        return ("No IDS/IPS response detected. The target does not appear to send RST "
+                "injections or ICMP alerts in response to suspicious probe patterns.")
+    if "tcp-rst" in str(action).lower() or "rst" in str(action).lower():
+        return ("IDS/IPS detected via TCP-RST injection. The device sends TCP RST packets "
+                "to terminate suspicious connections, indicating active intrusion prevention "
+                "capability. RST injection is a hallmark of inline IPS devices.")
+    if "icmp" in str(action).lower():
+        return ("IDS/IPS detected via ICMP alert responses. The device sends ICMP error "
+                "messages in response to suspicious traffic patterns.")
+    return f"IDS/IPS detected with action: {action}. The device exhibits active threat detection."
+
+
+def _ids_method_text(rst_injection, rst_count, drop_count, icmp_count):
+    methods = []
+    if rst_injection and rst_count > 0:
+        methods.append(f"TCP-RST injection ({rst_count} responses)")
+    if drop_count > 0:
+        methods.append(f"Packet dropping ({drop_count} packets)")
+    if icmp_count > 0:
+        methods.append(f"ICMP alerting ({icmp_count} responses)")
+    if methods:
+        return "Primary detection methods: " + ", ".join(methods)
+    return "Indeterminate detection method."
+
+
+def _dmz_analysis_text(detected, boundary):
+    if not detected:
+        return ("No DMZ architecture detected. The target network does not show evidence "
+                "of a demilitarized zone separating internal and external networks.")
+    return f"DMZ detected ({boundary}). Network segmentation exists between trust zones."
+
+
+def _waf_analysis_text(detected, vendor):
+    if not detected:
+        return ("No WAF signatures detected. The target does not respond to common web "
+                "attack payloads with blocking or rate-limiting behavior.")
+    return f"WAF detected (vendor: {vendor}). The device responds to web attack signatures."
+
+
 def _render_module3(story, m3: dict):
     if not m3 or m3.get("error"):
         return
@@ -346,29 +426,97 @@ def _render_module3(story, m3: dict):
 
     # Firewall
     fw = defs.get("firewall", {})
-    story.append(_subsection("Firewall"))
+    story.append(_subsection("Firewall Detection"))
+    fw_detected = fw.get("detected", False)
+    fw_type = fw.get("type", "N/A")
+    fw_behavior = fw.get("filtering_behavior", "N/A")
     story.append(_kv_table([
-        ("Detected", "Yes" if fw.get("detected") else "No"),
-        ("Type", fw.get("type", "N/A")),
-        ("Filtering Behavior", fw.get("filtering_behavior", "N/A")),
+        ("Detected", "Yes" if fw_detected else "No"),
+        ("Firewall Type", fw_type),
+        ("Filtering Behavior", fw_behavior),
+        ("Analysis", _fw_analysis_text(fw_detected, fw_type, fw_behavior)),
     ]))
     story.append(Spacer(1, 4))
+
+    # Firewall probe details
+    fw_details = fw.get("details", {})
+    if fw_details:
+        ack_responses = fw_details.get("ack_responses", [])
+        rst_responses = fw_details.get("rst_responses", [])
+        if ack_responses or rst_responses:
+            story.append(_subsection("Firewall Probe Details"))
+            probe_rows = []
+            for i, ack in enumerate(ack_responses):
+                rst = rst_responses[i] if i < len(rst_responses) else {}
+                probe_rows.append([
+                    ack.get("port", ""),
+                    ack.get("response_type", ""),
+                    ack.get("ttl", ""),
+                    ack.get("details", "")[:50],
+                    rst.get("response_type", ""),
+                    rst.get("details", "")[:50],
+                ])
+            if probe_rows:
+                story.append(_make_table(
+                    ["Port", "ACK Response", "ACK TTL", "ACK Details", "RST Response", "RST Details"],
+                    probe_rows, [0.5*inch, 1.0*inch, 0.5*inch, 1.8*inch, 1.0*inch, 1.8*inch]))
+            story.append(Spacer(1, 4))
 
     # IDS/IPS
     ids = defs.get("ids_ips", {})
-    story.append(_subsection("IDS/IPS"))
+    story.append(_subsection("IDS/IPS Detection"))
+    ids_detected = ids.get("detected", False)
+    ids_action = ids.get("action_observed", "N/A")
     story.append(_kv_table([
-        ("Detected", "Yes" if ids.get("detected") else "No"),
-        ("Action Observed", ids.get("action_observed", "N/A")),
+        ("Detected", "Yes" if ids_detected else "No"),
+        ("Action Observed", ids_action),
+        ("Analysis", _ids_analysis_text(ids_detected, ids_action)),
     ]))
     story.append(Spacer(1, 4))
 
+    # IDS/IPS probe details
+    ids_details = ids.get("details", {})
+    if ids_details:
+        probe_results = ids_details.get("probe_results", [])
+        if probe_results:
+            story.append(_subsection("IDS/IPS Probe Results"))
+            probe_rows = []
+            for pr in probe_results[:15]:
+                probe_rows.append([
+                    pr.get("port", ""),
+                    pr.get("signature", ""),
+                    pr.get("response_type", ""),
+                    str(pr.get("response_size", "")),
+                    pr.get("details", "")[:60],
+                ])
+            if probe_rows:
+                story.append(_make_table(
+                    ["Port", "Probe", "Response", "Size", "Details"],
+                    probe_rows, [0.5*inch, 0.9*inch, 1.2*inch, 0.5*inch, 3.5*inch]))
+            story.append(Spacer(1, 4))
+
+        # RST injection summary
+        rst_injection = ids_details.get("rst_injection_detected", False)
+        rst_count = ids_details.get("rst_count", 0)
+        drop_count = ids_details.get("drop_count", 0)
+        icmp_count = ids_details.get("icmp_count", 0)
+        story.append(_subsection("IDS/IPS Detection Summary"))
+        story.append(_kv_table([
+            ("RST Injection Detected", "Yes" if rst_injection else "No"),
+            ("Total RST Responses", str(rst_count)),
+            ("Dropped Packets", str(drop_count)),
+            ("ICMP Responses", str(icmp_count)),
+            ("Detection Method", _ids_method_text(rst_injection, rst_count, drop_count, icmp_count)),
+        ]))
+        story.append(Spacer(1, 4))
+
     # DMZ
     dmz = defs.get("dmz", {})
-    story.append(_subsection("DMZ"))
+    story.append(_subsection("DMZ Architecture"))
     story.append(_kv_table([
         ("Detected", "Yes" if dmz.get("detected") else "No"),
         ("Exposure Boundary", dmz.get("exposure_boundary", "N/A")),
+        ("Analysis", _dmz_analysis_text(dmz.get("detected", False), dmz.get("exposure_boundary", ""))),
     ]))
     story.append(Spacer(1, 4))
 
@@ -380,6 +528,7 @@ def _render_module3(story, m3: dict):
         ("Detected", "Yes" if waf.get("detected") else "No"),
         ("Vendor", waf.get("vendor", "Unknown")),
         ("Matched Signatures", ", ".join(sigs) if sigs else "None"),
+        ("Analysis", _waf_analysis_text(waf.get("detected", False), waf.get("vendor", ""))),
     ]))
     story.append(Spacer(1, 4))
 
@@ -585,6 +734,34 @@ def _render_module6(story, m6: dict):
             rows, [0.9*inch, 1.1*inch, 0.45*inch, 0.85*inch, 0.45*inch, 0.4*inch, 0.6*inch, 0.5*inch]))
         story.append(Spacer(1, 6))
 
+        # OS Distribution breakdown
+        story.append(_subsection("OS Distribution Breakdown"))
+        os_counts: dict[str, list[str]] = {}
+        for c in cls_list:
+            os_name = c.get("predicted_os", "Unknown")
+            if os_name not in os_counts:
+                os_counts[os_name] = []
+            os_counts[os_name].append(c.get("ip_address", ""))
+        if os_counts:
+            os_rows = []
+            for os_name, ips in sorted(os_counts.items(), key=lambda x: -len(x[1])):
+                avg_conf = 0.0
+                count = 0
+                for c in cls_list:
+                    if c.get("predicted_os") == os_name:
+                        avg_conf += c.get("os_confidence", 0)
+                        count += 1
+                if count > 0:
+                    avg_conf /= count
+                ip_list = ", ".join(ips[:5])
+                if len(ips) > 5:
+                    ip_list += f" ... (+{len(ips) - 5} more)"
+                os_rows.append([os_name, str(len(ips)), f"{avg_conf*100:.0f}%", ip_list])
+            story.append(_make_table(
+                ["Operating System", "Count", "Avg Confidence", "Hosts"],
+                os_rows, [1.6*inch, 0.7*inch, 0.9*inch, 3.5*inch]))
+            story.append(Spacer(1, 6))
+
         # Detailed per-device breakdown
         story.append(_subsection("Per-Device Analysis"))
         for c in cls_list:
@@ -679,15 +856,10 @@ def _add_page_number(canvas, doc):
 
 # ── Public API ──────────────────────────────────────────────────────────
 
-from ..sanitizer import sanitize_obj
-
 def generate_pdf_report(results: dict, target_ip: str, output_path: str) -> str:
     """Generate a multi-page PDF intelligence report from combined scan results."""
     global _s
     _s = _styles()
-
-    # Sanitize results to redact PII before rendering
-    safe_results = sanitize_obj(results) if results is not None else {}
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     doc = SimpleDocTemplate(
@@ -698,12 +870,12 @@ def generate_pdf_report(results: dict, target_ip: str, output_path: str) -> str:
 
     story = []
     _render_cover(story, target_ip)
-    _render_module1(story, safe_results.get("module1", {}))
-    _render_module2(story, safe_results.get("module2", {}))
-    _render_module3(story, safe_results.get("module3", {}))
-    _render_module4(story, safe_results.get("module4", {}))
-    _render_module5(story, safe_results.get("module5", {}))
-    _render_module6(story, safe_results.get("module6", {}))
+    _render_module1(story, results.get("module1", {}))
+    _render_module2(story, results.get("module2", {}))
+    _render_module3(story, results.get("module3", {}))
+    _render_module4(story, results.get("module4", {}))
+    _render_module5(story, results.get("module5", {}))
+    _render_module6(story, results.get("module6", {}))
     _render_footer(story, target_ip)
 
     doc.build(story, onFirstPage=_add_page_number, onLaterPages=_add_page_number)

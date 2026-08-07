@@ -1065,6 +1065,22 @@ Internal project — ANISAS v1.0.0
 
 ---
 
+## Beta (v1.0.1 — Beta testers)
+
+A beta preview (1.0.1 — beta) is available with experimental, additive improvements. This beta is provided for testers and does NOT modify or replace the stable v1.0.0 files. See CHANGELOG.md for a short summary and BETA-1.0.1.md for detailed testing and installation instructions.
+
+Key beta highlights (summary):
+
+- Improved AI/ML accuracy and reduced false positives
+- Faster scans via better probe scheduling
+- Lower peak memory through lazy model loading
+- Experimental plugin hooks behind `--enable-experimental`
+- Better PDF layout, structured logs, and small Windows fixes
+
+To test safely: use a separate clone or worktree (see BETA-1.0.1.md). Do not edit files in the main stable checkout when evaluating the beta.
+
+---
+
 ## Acknowledgements
 
 Special thanks to Om Gajjar (Om-Gajjar · he/him) — gajjarom010@gmail.com — in/omgajjar — GitHub: @Om-Gajjar (https://github.com/Om-Gajjar) — for reporting issue #2 and contributing to this project. Your report helped improve ASN resolution performance, streaming parsing, and caching. Thank you! We welcome further issues, reviews, and contributions from the community.

@@ -2,17 +2,57 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import os
 import re
 
 from .models import AIRiskSummary
 
 logger = logging.getLogger(__name__)
 
-_NLP_AVAILABLE = True
 _summarizer = None
 
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment-latest"
+
+# Set ANISAS_MODEL_PATH to a local directory to skip remote download.
+# Set ANISAS_DISABLE_MODEL=1 to force keyword-only mode (no transformers import).
+_LOCAL_MODEL_PATH = os.environ.get("ANISAS_MODEL_PATH", "")
+_DISABLE_MODEL = os.environ.get("ANISAS_DISABLE_MODEL", "").strip() in ("1", "true", "yes")
+
+# Expected SHA-256 checksums for critical model files (populated after first verified download).
+# To set: run the pipeline once with a trusted model, record the hashes of
+#   pytorch_model.bin (or model.safetensors) and config.json.
+_EXPECTED_CHECKSUMS: dict[str, str] = {}  # e.g. {"pytorch_model.bin": "abc123..."}
+
+
+def _sha256_of_file(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _verify_model_checksums(model_dir: str) -> bool:
+    """Verify model artifact checksums if EXPECTED_CHECKSUMS is configured."""
+    if not _EXPECTED_CHECKSUMS:
+        return True  # No checksums configured — skip verification
+    for filename, expected in _EXPECTED_CHECKSUMS.items():
+        fpath = os.path.join(model_dir, filename)
+        if not os.path.exists(fpath):
+            logger.warning("Model file missing: %s — cannot verify checksum", fpath)
+            return False
+        actual = _sha256_of_file(fpath)
+        if actual != expected:
+            logger.error(
+                "Checksum mismatch for %s: expected %s, got %s",
+                filename, expected, actual,
+            )
+            return False
+    logger.info("Model checksums verified OK")
+    return True
+
 
 # Keyword-based risk indicators as fallback when NLP model is unavailable
 _HIGH_RISK_KEYWORDS = [
@@ -44,7 +84,7 @@ def _build_risk_text(isp_name: str, organization: str, country: str, asn: str) -
     return "\n".join(parts)
 
 
-def _keyword_risk_assessment(text: str) -> tuple[str, str]:
+def _keyword_risk_assessment(text: str) -> tuple[str, str, float]:
     """Fallback keyword-based risk assessment when NLP model is unavailable."""
     text_lower = text.lower()
     high_hits = sum(1 for kw in _HIGH_RISK_KEYWORDS if kw in text_lower)
@@ -52,6 +92,7 @@ def _keyword_risk_assessment(text: str) -> tuple[str, str]:
 
     if high_hits >= 2:
         level = "High"
+        score = min(8.0 + high_hits * 0.5, 10.0)
         summary = (
             f"Based on automated keyword analysis, {high_hits} high-risk indicators "
             f"and {medium_hits} medium-risk indicators were detected in the public metadata "
@@ -59,82 +100,93 @@ def _keyword_risk_assessment(text: str) -> tuple[str, str]:
         )
     elif high_hits >= 1 or medium_hits >= 2:
         level = "Medium"
+        score = 4.0 + medium_hits * 0.5
         summary = (
             f"The automated analysis found {high_hits} high-risk and {medium_hits} "
             f"medium-risk indicators. While not critical, this network warrants monitoring."
         )
     else:
         level = "Low"
+        score = 1.0 + (medium_hits * 0.3)
         summary = (
             "Automated analysis of public metadata found no significant risk indicators. "
             "The network appears to operate within normal parameters for its class."
         )
-    return level, summary
+    return level, summary, score
 
 
-def _nlp_risk_assessment(text: str, isp_name: str) -> tuple[str, str]:
-    """Use Hugging Face NLP model to generate a risk summary.
-
-    This wrapper applies a runtime timeout and attempts to limit CPU threads used by
-    the underlying frameworks (torch/OpenMP) to reduce risk of resource exhaustion.
-    On timeout or error, falls back to keyword-based analysis.
-    """
+def _load_model():
+    """Load the NLP model from a local path (preferred) or remote hub."""
     global _summarizer
-    INFERENCE_TIMEOUT = int(__import__('os').getenv('ANISAS_INFERENCE_TIMEOUT', '5'))
-    MAX_INFERENCE_THREADS = int(__import__('os').getenv('ANISAS_MAX_THREADS', '1'))
+
+    # If explicitly disabled, skip loading
+    if _DISABLE_MODEL:
+        raise RuntimeError("NLP model disabled via ANISAS_DISABLE_MODEL env var")
+
+    from transformers import pipeline
+
+    if _LOCAL_MODEL_PATH:
+        # Load from local directory — no network access
+        model_dir = _LOCAL_MODEL_PATH
+        logger.info("Loading NLP model from local path: %s", model_dir)
+        if not os.path.isdir(model_dir):
+            raise FileNotFoundError(f"Local model directory not found: {model_dir}")
+        _verify_model_checksums(model_dir)
+        _summarizer = pipeline("sentiment-analysis", model=model_dir)
+    else:
+        # Load from remote hub (first run will download)
+        logger.info("Loading NLP model from remote: %s", MODEL_NAME)
+        _summarizer = pipeline("sentiment-analysis", model=MODEL_NAME)
+
+        # Verify checksums of downloaded files if configured
+        try:
+            from transformers import AutoConfig
+            config = AutoConfig.from_pretrained(
+                _LOCAL_MODEL_PATH or MODEL_NAME,
+                local_files_only=bool(_LOCAL_MODEL_PATH),
+            )
+            # Find the cache directory for this model
+            from huggingface_hub import scan_cache_dir
+            cache = scan_cache_dir()
+            for repo in cache.repos:
+                if MODEL_NAME in repo.repo_id:
+                    _verify_model_checksums(str(repo.repo_path))
+                    break
+        except Exception as exc:
+            logger.debug("Could not verify model cache checksums: %s", exc)
+
+    logger.info("NLP model loaded successfully")
+
+
+def _nlp_risk_assessment(text: str, isp_name: str) -> tuple[str, str, float]:
+    """Use Hugging Face NLP model to generate a risk summary."""
+    global _summarizer
     try:
         if _summarizer is None:
-            from transformers import pipeline
-            logger.info("Loading NLP model: %s", MODEL_NAME)
-            # Try to limit torch/OpenMP threads if available
-            try:
-                import torch
-                torch.set_num_threads(MAX_INFERENCE_THREADS)
-                torch.set_num_interop_threads(MAX_INFERENCE_THREADS)
-            except Exception:
-                # Ignore if torch not available at load time
-                logger.debug("Could not set torch thread limits; proceeding without them")
-            # Force CPU device (-1) unless user configured otherwise
-            _summarizer = pipeline("sentiment-analysis", model=MODEL_NAME, device=-1)
-            logger.info("NLP model loaded successfully")
+            _load_model()
 
         # Truncate text to model max length
         truncated = text[:512]
-
-        # Run inference in a thread with a timeout to avoid hangs
-        import concurrent.futures
-
-        def run_inference():
-            try:
-                return _summarizer(truncated)
-            except Exception as e:
-                # Re-raise to be caught by outer except
-                raise
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(run_inference)
-            try:
-                result = future.result(timeout=INFERENCE_TIMEOUT)
-            except concurrent.futures.TimeoutError:
-                logger.warning("NLP inference timed out after %s seconds; falling back to keyword analysis", INFERENCE_TIMEOUT)
-                return _keyword_risk_assessment(text)
-
+        result = _summarizer(truncated)
         sentiment = result[0].get("label", "Neutral").lower()
 
-        # Map sentiment to risk level
+        # Map sentiment to risk level and score
         if "negative" in sentiment:
             level = "High"
+            score = 7.5
         elif "neutral" in sentiment:
             level = "Medium"
+            score = 5.0
         else:
             level = "Low"
+            score = 2.0
 
         summary_text = (
             f"NLP sentiment: {sentiment.upper()}. "
             f"AI Risk Assessment for {isp_name}: "
             f"Automated analysis indicates {level.lower()} risk based on network metadata."
         )
-        return level, summary_text
+        return level, summary_text, score
 
     except Exception as exc:
         logger.warning("NLP model inference failed, falling back to keyword analysis: %s", exc)
@@ -158,15 +210,15 @@ async def analyze_risk(
         peering_count: Number of peering relationships found.
 
     Returns:
-        AIRiskSummary with risk_level and summary_text.
+        AIRiskSummary with risk_level, risk_score, and summary_text.
     """
     text = _build_risk_text(isp_name, organization, country, asn)
     text += f"\nPeering relationships: {peering_count} known partners."
 
     try:
-        level, summary = _nlp_risk_assessment(text, isp_name or organization)
+        level, summary, score = _nlp_risk_assessment(text, isp_name or organization)
     except Exception as exc:
         logger.error("Risk analysis failed entirely: %s", exc)
-        level, summary = _keyword_risk_assessment(text)
+        level, summary, score = _keyword_risk_assessment(text)
 
-    return AIRiskSummary(risk_level=level, summary_text=summary)
+    return AIRiskSummary(risk_level=level, risk_score=round(score, 1), summary_text=summary)

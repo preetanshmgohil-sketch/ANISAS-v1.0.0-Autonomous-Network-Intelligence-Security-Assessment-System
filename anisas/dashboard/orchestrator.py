@@ -68,31 +68,35 @@ async def run_pipeline(scan_id: str) -> dict:
 
     _add_log(scan_id, "Orchestrator", "STARTED", f"Pipeline started for target: {target}")
 
-    # Module 1: ASN & ISP Intelligence
-    await _run_module(scan_id, "module1", "Module-01", _run_module1, target)
+    # Module 1: ASN & ISP Intelligence (RDAP-only, fast)
+    await _run_module(scan_id, "module1", "Module-01", _run_module1, target, timeout=60.0)
 
-    # Module 2: Network Reconnaissance
+    # Module 2: Network Reconnaissance (with timeout)
     m1_results = scan["results"].get("module1", {})
     prefixes = m1_results.get("ip_prefixes", [])
-    target_for_m2 = prefixes[0] if prefixes else target
-    await _run_module(scan_id, "module2", "Module-02", _run_module2, target_for_m2, m1_results)
+    # Use original target IP for Module 2, fall back to prefix if needed
+    target_for_m2 = target
+    await _run_module(scan_id, "module2", "Module-02", _run_module2, target_for_m2, m1_results, timeout=90.0)
 
-    # Module 3: Security Perimeter
+    # Module 3: Security Perimeter (shorter timeout for external IPs)
     m2_results = scan["results"].get("module2", {})
     hosts_for_m3 = m2_results.get("active_hosts", [])
-    target_m3 = hosts_for_m3[0].get("ip_address", target) if hosts_for_m3 else target
-    await _run_module(scan_id, "module3", "Module-03", _run_module3, target_m3, m2_results)
+    target_m3 = target  # Default to original target
+    if hosts_for_m3:
+        ip = hosts_for_m3[0].get("ip_address", "")
+        if ip:
+            target_m3 = ip
+    await _run_module(scan_id, "module3", "Module-03", _run_module3, target_m3, m2_results, timeout=30.0)
 
-    # Module 4: IoT/Surveillance
-    m2_results = scan["results"].get("module2", {})
-    await _run_module(scan_id, "module4", "Module-04", _run_module4, target_for_m2, m2_results)
+    # Module 4: IoT/Surveillance (shorter timeout for external IPs)
+    await _run_module(scan_id, "module4", "Module-04", _run_module4, target, m2_results, timeout=45.0)
 
-    # Module 5: Wireless
-    await _run_module(scan_id, "module5", "Module-05", _run_module5, m2_results)
+    # Module 5: Wireless (shorter timeout)
+    await _run_module(scan_id, "module5", "Module-05", _run_module5, m2_results, timeout=30.0)
 
     # Module 6: AI/ML Analytics
     all_results = scan["results"]
-    await _run_module(scan_id, "module6", "Module-06", _run_module6, all_results)
+    await _run_module(scan_id, "module6", "Module-06", _run_module6, all_results, timeout=60.0)
 
     scan["status"] = "COMPLETE"
     _add_log(scan_id, "Orchestrator", "COMPLETE", "All modules finished successfully.")
@@ -106,8 +110,9 @@ async def _run_module(
     module_name: str,
     func,
     *args,
+    timeout: float = 120.0,
 ) -> None:
-    """Run a single module with status tracking."""
+    """Run a single module with status tracking and timeout."""
     scan = _scans.get(scan_id)
     if not scan:
         return
@@ -116,14 +121,23 @@ async def _run_module(
     scan["current_module"] = module_name
     _add_log(scan_id, module_name, "RUNNING", f"Starting {module_name} ...")
 
+    loop = asyncio.get_event_loop()
+
+    def _run():
+        return func(*args)
+
     try:
-        result = await asyncio.get_event_loop().run_in_executor(
-            None, lambda: func(*args)
-        )
+        future = loop.run_in_executor(None, _run)
+        result = await asyncio.wait_for(future, timeout=timeout)
         scan["results"][module_key] = result if isinstance(result, dict) else {}
         scan["modules"][module_key]["status"] = "COMPLETE"
         scan["modules"][module_key]["progress"] = 100
         _add_log(scan_id, module_name, "COMPLETE", f"{module_name} finished successfully.")
+    except asyncio.TimeoutError:
+        scan["modules"][module_key]["status"] = "FAILED"
+        _add_log(scan_id, module_name, "FAILED", f"{module_name} timed out after {timeout}s")
+        scan["results"][module_key] = {"error": f"Module timed out after {timeout}s"}
+        logger.error("Module %s timed out after %s seconds", module_name, timeout)
     except Exception as exc:
         scan["modules"][module_key]["status"] = "FAILED"
         _add_log(scan_id, module_name, "FAILED", f"{module_name} failed: {exc}")
@@ -136,8 +150,13 @@ def _run_module1(target_ip: str) -> dict:
     try:
         from anisas.engine import run_engine
         import asyncio
-        report = asyncio.run(run_engine(target_ip))
-        return report.model_dump()
+        # Create a new event loop for this thread
+        loop = asyncio.new_event_loop()
+        try:
+            report = loop.run_until_complete(run_engine(target_ip))
+            return report.model_dump()
+        finally:
+            loop.close()
     except Exception as e:
         return {"error": str(e), "target_ip": target_ip, "ip_prefixes": []}
 

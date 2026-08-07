@@ -97,8 +97,8 @@ def build_topology(
             try:
                 net = ipaddress.ip_network(matched_subnet, strict=False)
                 gw = str(list(net.hosts())[0])
-            except (ValueError, IndexError):
-                pass
+            except (ValueError, IndexError) as e:
+                logger.debug("Could not compute gateway for %s: %s", matched_subnet, e)
 
             if gw and gw in host_ips:
                 add_edge(gw, ip)

@@ -6,10 +6,15 @@ import logging
 import os
 import platform
 import re
+import socket
 import subprocess
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
+
+# Limit reverse DNS lookups to avoid scan delays
+_MAX_RDNS_LOOKUPS = 20
 
 # Common DHCP lease file paths
 _DHCP_LEASE_PATHS_LINUX = [
@@ -37,12 +42,7 @@ def _parse_arp_table() -> list[dict]:
                     ip = parts[0]
                     mac = parts[1]
                     if _is_valid_mac(mac) and _is_valid_ip(ip):
-                        clients.append({
-                            "mac_address": mac,
-                            "assigned_ip": ip,
-                            "status": "ACTIVE",
-                            "hostname": None,
-                        })
+                        clients.append(_make_client(mac, ip, "ACTIVE"))
         else:
             result = subprocess.run(
                 ["arp", "-n"],
@@ -57,12 +57,7 @@ def _parse_arp_table() -> list[dict]:
                         # Skip incomplete entries
                         if mac == "(incomplete)" or mac == "00:00:00:00:00:00":
                             continue
-                        clients.append({
-                            "mac_address": mac,
-                            "assigned_ip": ip,
-                            "status": "ACTIVE",
-                            "hostname": None,
-                        })
+                        clients.append(_make_client(mac, ip, "ACTIVE"))
     except (FileNotFoundError, subprocess.TimeoutExpired) as e:
         logger.debug("ARP table parse failed: %s", e)
 
@@ -105,6 +100,7 @@ def _parse_dhcp_leases() -> list[dict]:
                             "assigned_ip": ip_match.group(1),
                             "status": "INACTIVE",
                             "hostname": host_match.group(1) if host_match else None,
+                            "last_seen_timestamp": _now_iso(),
                         })
 
                 # Parse ISC DHCP format
@@ -120,6 +116,7 @@ def _parse_dhcp_leases() -> list[dict]:
                                 "assigned_ip": current_ip,
                                 "status": "INACTIVE",
                                 "hostname": None,
+                                "last_seen_timestamp": _now_iso(),
                             })
             except (FileNotFoundError, PermissionError, OSError):
                 continue
@@ -143,14 +140,9 @@ def _parse_ip_neigh() -> list[dict]:
                 state = parts[1] if len(parts) > 1 else ""
                 if _is_valid_mac(mac) and _is_valid_ip(ip):
                     status = "ACTIVE" if state in ("lladdr", "REACHABLE", "STALE", "DELAY") else "INACTIVE"
-                    clients.append({
-                        "mac_address": mac,
-                        "assigned_ip": ip,
-                        "status": status,
-                        "hostname": None,
-                    })
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
+                    clients.append(_make_client(mac, ip, status))
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        logger.debug("Client enumeration failed: %s", e)
     return clients
 
 
@@ -165,10 +157,62 @@ def _is_valid_ip(ip: str) -> bool:
     return all(p.isdigit() and 0 <= int(p) <= 255 for p in parts)
 
 
+def _batch_reverse_dns(ips: list[str]) -> dict[str, str]:
+    """Perform reverse DNS lookups in parallel for a list of IPs.
+    Returns dict mapping IP -> hostname for successful lookups.
+    """
+    results: dict[str, str] = {}
+    unique_ips = list(set(ip for ip in ips if ip and ip != "0.0.0.0"))
+    if not unique_ips:
+        return results
+
+    ips_to_check = unique_ips[:_MAX_RDNS_LOOKUPS]
+
+    def _lookup(ip: str) -> tuple[str, str | None]:
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip)
+            if hostname and hostname != ip:
+                return ip, hostname
+        except Exception:  # noqa: BLE001
+            pass
+        return ip, None
+
+    try:
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(_lookup, ip) for ip in ips_to_check]
+            for future in as_completed(futures, timeout=5):
+                try:
+                    ip, hostname = future.result()
+                    if hostname:
+                        results[ip] = hostname
+                except Exception:  # noqa: BLE001
+                    pass
+    except Exception:  # noqa: BLE001
+        pass
+
+    return results
+
+
+def _now_iso() -> str:
+    """Return current UTC time as ISO-8601 string."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _make_client(mac: str, ip: str, status: str = "ACTIVE") -> dict:
+    """Build a client dict with timestamp. Hostname is resolved in batch later."""
+    return {
+        "mac_address": mac,
+        "assigned_ip": ip,
+        "status": status,
+        "hostname": None,
+        "last_seen_timestamp": _now_iso(),
+    }
+
+
 def enumerate_clients() -> list[dict]:
     """Enumerate network clients from ARP cache and DHCP leases.
 
-    Returns list of client dicts with mac, ip, status, hostname.
+    Returns list of client dicts with mac, ip, status, hostname, last_seen_timestamp.
     """
     seen: set[str] = set()
     all_clients: list[dict] = []
@@ -193,5 +237,15 @@ def enumerate_clients() -> list[dict]:
         if key not in seen:
             seen.add(key)
             all_clients.append(client)
+
+    # Batch reverse DNS lookup for all unique IPs
+    all_ips = [c["assigned_ip"] for c in all_clients if c.get("assigned_ip")]
+    hostname_map = _batch_reverse_dns(all_ips)
+
+    # Merge hostnames into client records
+    for client in all_clients:
+        ip = client.get("assigned_ip")
+        if ip and ip in hostname_map:
+            client["hostname"] = hostname_map[ip]
 
     return all_clients

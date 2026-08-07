@@ -6,20 +6,18 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
+from pathlib import Path
 
+from ._safety import safe_filename, safe_path
 from .engine import run_engine
 
 
 def _setup_logging(verbose: bool) -> None:
     level = logging.DEBUG if verbose else logging.INFO
-    try:
-        from .logging_config import configure_logging
-        configure_logging(level=level)
-    except Exception:
-        # Fallback to basic config if custom configure fails
-        fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-        logging.basicConfig(level=level, format=fmt, stream=sys.stderr)
+    fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    logging.basicConfig(level=level, format=fmt, stream=sys.stderr)
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -33,7 +31,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "-o", "--output",
-        default=None,
+        default=".",
         help="Output directory for reports (default: current directory)",
     )
     parser.add_argument(
@@ -49,16 +47,34 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _validate_output_dir(output_dir: str) -> str:
+    """Canonicalize and validate the output directory."""
+    resolved = Path(output_dir).resolve()
+    if not resolved.is_dir():
+        try:
+            resolved.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise ValueError(f"Cannot create output directory {resolved}: {exc}") from exc
+    return str(resolved)
+
+
+def _build_output_paths(base_dir: str, ip: str) -> tuple[str | None, str | None]:
+    """Build safe, sanitized output file paths within base_dir."""
+    safe_ip = safe_filename(ip)
+    json_path = safe_path(base_dir, f"anisas_report_{safe_ip}.json")
+    pdf_path = safe_path(base_dir, f"anisas_report_{safe_ip}.pdf")
+    return json_path, pdf_path
+
+
 async def _async_main(args: argparse.Namespace) -> int:
     ip = args.ip
-    out_dir = args.output or "."
 
     if args.json_only:
         json_path = None
         pdf_path = None
     else:
-        json_path = f"{out_dir}/anisas_report_{ip.replace(':', '_')}.json"
-        pdf_path = f"{out_dir}/anisas_report_{ip.replace(':', '_')}.pdf"
+        base_dir = _validate_output_dir(args.output)
+        json_path, pdf_path = _build_output_paths(base_dir, ip)
 
     try:
         report = await run_engine(

@@ -18,6 +18,12 @@ SCAN_PORTS = sorted(SERVICE_PORTS.keys()) + [
     8080, 8443, 8888, 9090, 9200, 9443, 27017,
 ]
 
+# Top 20 most common ports for fast scanning
+FAST_SCAN_PORTS = [
+    21, 22, 23, 25, 53, 80, 110, 135, 139, 143,
+    443, 445, 993, 995, 1433, 3306, 3389, 5432, 8080, 8443,
+]
+
 
 def _get_service_name(port: int) -> str:
     return SERVICE_PORTS.get(port, "unknown")
@@ -39,7 +45,7 @@ def _grab_banner(ip: str, port: int, timeout: float = 1.5) -> str | None:
             if data:
                 banner = data.decode("utf-8", errors="replace").strip()[:256]
         except (socket.timeout, OSError):
-            pass
+            pass  # banner unavailable — not a failure
 
         if not banner and port in (80, 8080, 443, 8443):
             try:
@@ -50,7 +56,7 @@ def _grab_banner(ip: str, port: int, timeout: float = 1.5) -> str | None:
                     first_line = data.decode("utf-8", errors="replace").split("\r\n")[0]
                     banner = first_line[:256]
             except (socket.timeout, OSError):
-                pass
+                pass  # HTTP probe failed — acceptable
 
         sock.close()
         return banner
@@ -106,12 +112,13 @@ def scan_host_ports(
     ip: str,
     stealth: StealthConfig | None = None,
     ports: list[int] | None = None,
+    fast: bool = True,
 ) -> list[dict]:
     """Scan ports on a single host. Returns list of open port dicts."""
     if stealth is None:
         stealth = StealthConfig()
     if ports is None:
-        ports = SCAN_PORTS
+        ports = FAST_SCAN_PORTS if fast else SCAN_PORTS
     return _scan_single_host_ports(ip, ports, stealth)
 
 
@@ -120,6 +127,7 @@ def scan_all_hosts_ports(
     stealth: StealthConfig | None = None,
     ports: list[int] | None = None,
     progress_callback: Callable[[str, int], None] | None = None,
+    fast: bool = True,
 ) -> dict[str, list[dict]]:
     """Scan ports across all discovered hosts concurrently.
 
@@ -128,7 +136,7 @@ def scan_all_hosts_ports(
     if stealth is None:
         stealth = StealthConfig()
     if ports is None:
-        ports = SCAN_PORTS
+        ports = FAST_SCAN_PORTS if fast else SCAN_PORTS
 
     results: dict[str, list[dict]] = {}
 

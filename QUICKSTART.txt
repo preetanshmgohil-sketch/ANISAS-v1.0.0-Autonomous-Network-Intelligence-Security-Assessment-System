@@ -1,0 +1,89 @@
+# ANISAS - Quick Start Guide
+
+## On Windows
+
+### Option 1: Double-click setup
+1. Copy the `anisas` folder to the target machine
+2. Double-click `setup.bat`
+3. Wait for installation to finish
+4. Run: `python -m anisas.dashboard`
+5. Open browser: `http://127.0.0.1:8000`
+
+### Option 2: Command line
+```
+cd anisas
+pip install -r requirements.txt
+python -m anisas.dashboard
+```
+
+---
+
+## On Linux / macOS
+
+```bash
+cd anisas
+chmod +x setup.sh
+./setup.sh
+python3 -m anisas.dashboard
+```
+
+Then open: `http://127.0.0.1:8000`
+
+---
+
+## Access from Other Devices (LAN)
+
+To let other devices on your network access the dashboard:
+
+```bash
+python -m anisas.dashboard --host 0.0.0.0 --port 8000
+```
+
+Then from any device on the same network, open:
+```
+http://<YOUR-IP>:8000
+```
+
+Find your IP:
+- Windows: `ipconfig`
+- Linux/macOS: `ip addr` or `ifconfig`
+
+---
+
+## Requirements
+
+- Python 3.10 or later
+- Internet connection (for Module 1 ASN lookups)
+- ~500 MB disk (for NLP model, auto-downloads on first run)
+
+---
+
+## Quick Test (No Dashboard)
+
+```bash
+# Module 1 only - works on any IP
+python -m anisas 8.8.8.8
+```
+
+---
+
+## Troubleshooting
+
+**"Python not found"**
+- Install Python from https://www.python.org
+- During install, check "Add Python to PATH"
+
+**"pip not found"**
+```
+python -m pip install -r requirements.txt
+```
+
+**Dashboard port in use**
+```
+python -m anisas.dashboard --port 5000
+```
+
+**Permission denied (Linux)**
+```
+sudo python3 -m anisas.dashboard
+```
