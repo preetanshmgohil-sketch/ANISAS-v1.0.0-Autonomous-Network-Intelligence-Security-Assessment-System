@@ -85,12 +85,13 @@ async def run_engine(
         ),
     )
 
-    # Step 4: Output Generation
+    # Step 4: Output Generation (offloaded to thread pool to avoid blocking event loop)
     logger.info("[4/4] Generating reports ...")
     if json_output:
-        generate_json(report, json_output)
+        await asyncio.to_thread(generate_json, report, json_output)
     if pdf_output:
-        generate_pdf(report, pdf_output)
+        await asyncio.to_thread(generate_pdf, report, pdf_output)
 
-    logger.info("Pipeline completed in %.2f seconds.", elapsed)
+    total_elapsed = time.monotonic() - start
+    logger.info("Pipeline completed in %.2f seconds.", total_elapsed)
     return report
