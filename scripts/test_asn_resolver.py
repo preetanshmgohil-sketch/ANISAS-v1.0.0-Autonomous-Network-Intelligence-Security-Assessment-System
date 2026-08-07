@@ -84,7 +84,7 @@ async def _test_resolve_prefers_ipinfo():
     asn_entries, prefixes, sources = await run_resolve_with_client(ip, fake)
     assert asn_entries
     assert asn_entries[0].asn == "AS12345"
-    assert "ipinfo.io" in sources
+    assert any(s == "ipinfo.io" for s in sources)
 
 
 async def _test_cache_prevents_duplicate_fetch():
