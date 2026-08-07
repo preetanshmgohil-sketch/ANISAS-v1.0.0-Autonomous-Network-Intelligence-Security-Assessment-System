@@ -1067,5 +1067,5 @@ Internal project — ANISAS v1.0.0
 
 ## Acknowledgements
 
-Special thanks to Om Gajjar (Om-Gajjar · he/him) — gajjarom010@gmail.com — in/omgajjar — for reporting issue #2 and contributing to this project. Your report helped improve ASN resolution performance, streaming parsing, and caching. Thank you! We welcome further issues, reviews, and contributions from the community.
+Special thanks to Om Gajjar (Om-Gajjar · he/him) — gajjarom010@gmail.com — in/omgajjar — GitHub: @Om-Gajjar (https://github.com/Om-Gajjar) — for reporting issue #2 and contributing to this project. Your report helped improve ASN resolution performance, streaming parsing, and caching. Thank you! We welcome further issues, reviews, and contributions from the community.
 
