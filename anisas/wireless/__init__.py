@@ -1,3 +1,3 @@
 """ANISAS Wireless Module — Wireless Network Intelligence & MAC Analysis."""
 
-__version__ = "1.0.0"
+__version__ = "1.0.1-beta"
