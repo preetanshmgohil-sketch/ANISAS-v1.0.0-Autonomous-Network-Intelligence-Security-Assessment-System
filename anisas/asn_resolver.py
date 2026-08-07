@@ -9,6 +9,7 @@ from typing import Any
 
 import httpx
 from .httpx_client import get_client
+from .cache import get_or_set
 
 from .models import ASNEntry
 
@@ -145,9 +146,9 @@ async def resolve_asn(ip: str) -> tuple[list[ASNEntry], list[str], list[str]]:
 
     # Launch provider queries concurrently
     tasks = [
-        asyncio.create_task(_query_ipinfo(ip, client)),
-        asyncio.create_task(_query_bgpview_ip(ip, client)),
-        asyncio.create_task(_query_cymru(ip, client)),
+        asyncio.create_task(get_or_set(f"ipinfo:{ip}", lambda: _query_ipinfo(ip, client))),
+        asyncio.create_task(get_or_set(f"bgpview_ip:{ip}", lambda: _query_bgpview_ip(ip, client))),
+        asyncio.create_task(get_or_set(f"cymru:{ip}", lambda: _query_cymru(ip, client))),
     ]
 
     try:
@@ -187,7 +188,7 @@ async def resolve_asn(ip: str) -> tuple[list[ASNEntry], list[str], list[str]]:
         prefixes.append(info["ip_range"])
 
     # Fetch ASN prefixes from bgpview (may be empty)
-    bgpview_prefixes = await _query_bgpview_asn(primary_asn.asn, client)
+    bgpview_prefixes = await get_or_set(f"bgpview_asn:{primary_asn.asn}", lambda: _query_bgpview_asn(primary_asn.asn, client))
     if bgpview_prefixes:
         sources_queried.append("bgpview.io/asn_prefixes")
         prefixes.extend(bgpview_prefixes)
