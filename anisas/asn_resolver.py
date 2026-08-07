@@ -7,6 +7,7 @@ import re
 from typing import Any
 
 import httpx
+from .httpx_client import get_client
 
 from .models import ASNEntry
 
@@ -128,51 +129,51 @@ async def resolve_asn(ip: str) -> tuple[list[ASNEntry], list[str], list[str]]:
         (asn_entries, ip_prefixes, sources_queried)
     """
     sources_queried: list[str] = []
-    async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=True) as client:
-        # --- ASN Resolution (try providers in order) ---
-        info: dict[str, Any] | None = None
+    client = get_client()
+    # --- ASN Resolution (try providers in order) ---
+    info: dict[str, Any] | None = None
 
-        info = await _query_ipinfo(ip, client)
+    info = await _query_ipinfo(ip, client)
+    if info:
+        sources_queried.append("ipinfo.io")
+    else:
+        info = await _query_bgpview_ip(ip, client)
         if info:
-            sources_queried.append("ipinfo.io")
+            sources_queried.append("bgpview.io")
         else:
-            info = await _query_bgpview_ip(ip, client)
+            info = await _query_cymru(ip, client)
             if info:
-                sources_queried.append("bgpview.io")
-            else:
-                info = await _query_cymru(ip, client)
-                if info:
-                    sources_queried.append("team-cymru")
+                sources_queried.append("team-cymru")
 
-        if not info:
-            logger.warning("All ASN resolution providers failed for %s", ip)
-            return [], [], sources_queried
+    if not info:
+        logger.warning("All ASN resolution providers failed for %s", ip)
+        return [], [], sources_queried
 
-        primary_asn = ASNEntry(
-            asn=info["asn"],
-            organization=info.get("organization", ""),
-            country=info.get("country", ""),
-            registry=info.get("registry", ""),
-            is_primary=True,
-        )
-        asn_entries = [primary_asn]
+    primary_asn = ASNEntry(
+        asn=info["asn"],
+        organization=info.get("organization", ""),
+        country=info.get("country", ""),
+        registry=info.get("registry", ""),
+        is_primary=True,
+    )
+    asn_entries = [primary_asn]
 
-        # --- IP Prefix Enumeration ---
-        prefixes: list[str] = []
-        if info.get("ip_range"):
-            prefixes.append(info["ip_range"])
+    # --- IP Prefix Enumeration ---
+    prefixes: list[str] = []
+    if info.get("ip_range"):
+        prefixes.append(info["ip_range"])
 
-        bgpview_prefixes = await _query_bgpview_asn(primary_asn.asn, client)
-        if bgpview_prefixes:
-            sources_queried.append("bgpview.io/asn_prefixes")
-            prefixes.extend(bgpview_prefixes)
+    bgpview_prefixes = await _query_bgpview_asn(primary_asn.asn, client)
+    if bgpview_prefixes:
+        sources_queried.append("bgpview.io/asn_prefixes")
+        prefixes.extend(bgpview_prefixes)
 
-        # Deduplicate while preserving order
-        seen: set[str] = set()
-        unique: list[str] = []
-        for p in prefixes:
-            if p and p not in seen:
-                seen.add(p)
-                unique.append(p)
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for p in prefixes:
+        if p and p not in seen:
+            seen.add(p)
+            unique.append(p)
 
-        return asn_entries, unique, sources_queried
+    return asn_entries, unique, sources_queried

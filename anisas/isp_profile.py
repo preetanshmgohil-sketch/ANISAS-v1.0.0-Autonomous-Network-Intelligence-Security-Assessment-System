@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 import httpx
+from .httpx_client import get_client
 
 from .models import ASNEntry, ISPProfile
 
@@ -110,25 +111,25 @@ async def build_isp_profile(
     primary = asn_entries[0]
     sources_queried: list[str] = []
 
-    async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=True) as client:
-        # Fetch ASN metadata for ISP profile
-        meta = await _fetch_asn_meta(primary.asn, client)
+    client = get_client()
+    # Fetch ASN metadata for ISP profile
+    meta = await _fetch_asn_meta(primary.asn, client)
 
-        noc_contact = ""
-        abuse_contact = ""
-        isp_name = primary.organization
+    noc_contact = ""
+    abuse_contact = ""
+    isp_name = primary.organization
 
-        if meta:
-            noc_contact = meta.get("email_fixed") or meta.get("phone_fixed") or ""
-            abuse_contact = meta.get("abuse_fixed") or meta.get("email_fixed") or ""
-            if not isp_name:
-                isp_name = meta.get("name") or meta.get("description", "")
+    if meta:
+        noc_contact = meta.get("email_fixed") or meta.get("phone_fixed") or ""
+        abuse_contact = meta.get("abuse_fixed") or meta.get("email_fixed") or ""
+        if not isp_name:
+            isp_name = meta.get("name") or meta.get("description", "")
 
-        # Fetch peering relationships
-        peering = await _fetch_peering(primary.asn, client)
+    # Fetch peering relationships
+    peering = await _fetch_peering(primary.asn, client)
 
-        # Detect secondary ASNs
-        secondary = await _find_secondary_asns(ip, primary.asn, client)
+    # Detect secondary ASNs
+    secondary = await _find_secondary_asns(ip, primary.asn, client)
 
     profile = ISPProfile(
         name=isp_name,
