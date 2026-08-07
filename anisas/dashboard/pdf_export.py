@@ -679,10 +679,15 @@ def _add_page_number(canvas, doc):
 
 # ── Public API ──────────────────────────────────────────────────────────
 
+from ..sanitizer import sanitize_obj
+
 def generate_pdf_report(results: dict, target_ip: str, output_path: str) -> str:
     """Generate a multi-page PDF intelligence report from combined scan results."""
     global _s
     _s = _styles()
+
+    # Sanitize results to redact PII before rendering
+    safe_results = sanitize_obj(results) if results is not None else {}
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     doc = SimpleDocTemplate(
@@ -693,12 +698,12 @@ def generate_pdf_report(results: dict, target_ip: str, output_path: str) -> str:
 
     story = []
     _render_cover(story, target_ip)
-    _render_module1(story, results.get("module1", {}))
-    _render_module2(story, results.get("module2", {}))
-    _render_module3(story, results.get("module3", {}))
-    _render_module4(story, results.get("module4", {}))
-    _render_module5(story, results.get("module5", {}))
-    _render_module6(story, results.get("module6", {}))
+    _render_module1(story, safe_results.get("module1", {}))
+    _render_module2(story, safe_results.get("module2", {}))
+    _render_module3(story, safe_results.get("module3", {}))
+    _render_module4(story, safe_results.get("module4", {}))
+    _render_module5(story, safe_results.get("module5", {}))
+    _render_module6(story, safe_results.get("module6", {}))
     _render_footer(story, target_ip)
 
     doc.build(story, onFirstPage=_add_page_number, onLaterPages=_add_page_number)
