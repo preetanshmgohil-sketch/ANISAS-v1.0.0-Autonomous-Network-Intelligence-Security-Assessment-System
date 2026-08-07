@@ -8,23 +8,99 @@ from .stealth import classify_os_by_ttl
 
 logger = logging.getLogger(__name__)
 
-# Banner-based OS hints
+# Banner-based OS hints (order matters: first match wins)
 _BANNER_OS_HINTS: list[tuple[str, str]] = [
+    # Linux distributions
     ("openssh", "Linux"),
-    ("ubuntu", "Linux"),
-    ("debian", "Linux"),
-    ("centos", "Linux"),
-    ("red hat", "Linux"),
+    ("ubuntu", "Linux (Ubuntu)"),
+    ("debian", "Linux (Debian)"),
+    ("centos", "Linux (CentOS)"),
+    ("red hat", "Linux (RHEL)"),
+    ("rhel", "Linux (RHEL)"),
+    ("fedora", "Linux (Fedora)"),
+    ("suse", "Linux (SUSE)"),
+    ("opensuse", "Linux (openSUSE)"),
+    ("alpine", "Linux (Alpine)"),
+    ("arch linux", "Linux (Arch)"),
+    ("gentoo", "Linux (Gentoo)"),
+    ("slackware", "Linux (Slackware)"),
+    ("raspbian", "Linux (Raspberry Pi)"),
+    ("raspberry", "Linux (Raspberry Pi)"),
+    ("kali", "Linux (Kali)"),
+    ("mint", "Linux (Mint)"),
+    ("manjaro", "Linux (Manjaro)"),
+    ("rocky", "Linux (Rocky)"),
+    ("almalinux", "Linux (AlmaLinux)"),
+    ("oracle linux", "Linux (Oracle)"),
+    ("amzn", "Linux (Amazon)"),
+    # macOS
+    ("darwin", "macOS"),
+    ("mac os", "macOS"),
+    ("macos", "macOS"),
+    ("apple", "macOS"),
+    ("airport", "macOS (Apple)"),
+    # Windows
     ("microsoft", "Windows"),
-    ("iis", "Windows"),
+    ("iis", "Windows (IIS)"),
     ("microsoft-ds", "Windows"),
-    ("cisco", "Embedded/Network"),
-    ("juniper", "Embedded/Network"),
-    ("mikrotik", "Embedded/Network"),
-    ("routeros", "Embedded/Network"),
-    ("apache", "Linux"),
-    ("nginx", "Linux"),
-    ("lighttpd", "Linux"),
+    ("microsoft-ds", "Windows (SMB)"),
+    ("microsoft iis", "Windows (IIS)"),
+    ("windows server", "Windows Server"),
+    ("windows nt", "Windows NT"),
+    ("win32", "Windows"),
+    ("win64", "Windows"),
+    ("powershell", "Windows"),
+    ("remote desktop", "Windows (RDP)"),
+    # BSD
+    ("freebsd", "FreeBSD"),
+    ("openbsd", "OpenBSD"),
+    ("netbsd", "NetBSD"),
+    ("dragonfly", "DragonFly BSD"),
+    # Solaris / Unix
+    ("solaris", "Solaris"),
+    ("sunos", "Solaris/SunOS"),
+    ("illumos", "Illumos"),
+    ("aix", "AIX"),
+    ("hp-ux", "HP-UX"),
+    ("irix", "IRIX"),
+    # Network / Embedded
+    ("cisco", "Cisco IOS"),
+    ("cisco ios", "Cisco IOS"),
+    ("juniper", "Juniper"),
+    ("junos", "Juniper (JunOS)"),
+    ("mikrotik", "MikroTik"),
+    ("routeros", "MikroTik (RouterOS)"),
+    ("vyos", "VyOS"),
+    ("pfsense", "pfSense"),
+    ("opnsense", "OPNsense"),
+    ("fortigate", "Fortinet"),
+    ("fortios", "Fortinet"),
+    ("paloalto", "Palo Alto"),
+    ("checkpoint", "Check Point"),
+    ("ubiquiti", "Ubiquiti"),
+    ("ubnt", "Ubiquiti"),
+    ("meraki", "Meraki (Cisco)"),
+    ("aruba", "Aruba"),
+    ("unifi", "Ubiquiti"),
+    # IoT / Embedded
+    ("linux/embedded", "Embedded Linux"),
+    ("busybox", "Embedded Linux (BusyBox)"),
+    ("dropbear", "Embedded Linux (Dropbear)"),
+    # Web servers (typically Linux)
+    ("apache", "Linux (Apache)"),
+    ("nginx", "Linux (Nginx)"),
+    ("lighttpd", "Linux (Lighttpd)"),
+    ("cherokee", "Linux (Cherokee)"),
+    ("openresty", "Linux (OpenResty)"),
+    ("caddy", "Linux (Caddy)"),
+    ("litespeed", "Linux (LiteSpeed)"),
+    # Database banners
+    ("mysql", "Linux/Unix (MySQL)"),
+    ("mariadb", "Linux/Unix (MariaDB)"),
+    ("postgresql", "Linux/Unix (PostgreSQL)"),
+    ("redis", "Linux/Unix (Redis)"),
+    ("mongodb", "Linux/Unix (MongoDB)"),
+    ("elasticsearch", "Linux/Unix (Elastic)"),
 ]
 
 # Banner-based service refinements
@@ -80,13 +156,29 @@ def fingerprint_os(
 
     # 3. Window size heuristics
     if window_size and window_size > 0:
-        if predicted_os == "Unknown":
+        if predicted_os in ("Unknown", "Linux/Unix"):
             if window_size >= 65535:
                 predicted_os = "Windows"
-            elif window_size <= 16384:
-                predicted_os = "Linux"
             elif 16384 < window_size < 65535:
-                predicted_os = "Embedded/Network"
+                # Many Linux distros use 29200, 5840, 14600, 65535
+                # macOS often uses 65535 or 16384
+                if window_size in (65535, 65535 * 2):
+                    predicted_os = "macOS/Windows"
+                elif window_size <= 32768:
+                    predicted_os = "Linux/Unix"
+                else:
+                    predicted_os = "Linux/Unix"
+            elif window_size <= 16384:
+                if window_size <= 4096:
+                    predicted_os = "Embedded/RTOS"
+                else:
+                    predicted_os = "Linux/Unix"
+            elif window_size == 0:
+                predicted_os = "Unknown"
+
+        # Refine for Windows specifically
+        if predicted_os == "Windows" and window_size < 8192:
+            predicted_os = "Embedded/Windows IoT"
 
     return {
         "predicted_os": predicted_os,

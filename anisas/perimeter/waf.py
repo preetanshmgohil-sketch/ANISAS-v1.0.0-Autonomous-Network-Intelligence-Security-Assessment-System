@@ -49,8 +49,6 @@ _WAF_SIGNATURES: dict[str, list[str]] = {
 # WAF detection test payloads (benign but trigger rules)
 _WAF_TEST_PAYLOADS = [
     {"name": "SQLi-Test", "path": "/?id=1' OR '1'='1"},
-    {"name": "XSS-Test", "path": "/?q=<script>alert(1)</script>"},
-    {"name": "Path-Traversal", "path": "/../../../etc/passwd"},
     {"name": "Normal-Request", "path": "/"},
 ]
 
@@ -73,7 +71,6 @@ def _send_http_request(
     try:
         if use_https:
             ctx = ssl.create_default_context()
-            ctx.minimum_version = ssl.TLSVersion.TLSv1_2
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

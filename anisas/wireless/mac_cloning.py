@@ -44,8 +44,8 @@ def _get_default_interface() -> str:
                 if "interface:" in line:
                     return line.split(":")[-1].strip()
             return "en0"
-    except Exception:
-        pass
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, ValueError) as e:
+        logger.debug("Could not detect default interface: %s", e)
     return "eth0"
 
 
@@ -78,8 +78,8 @@ def _get_current_mac(interface: str) -> str | None:
             for line in result.stdout.splitlines():
                 if "ether" in line:
                     return line.split("ether")[1].strip()
-    except Exception:
-        pass
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, ValueError) as e:
+        logger.debug("Could not read MAC for interface %s: %s", interface, e)
     return None
 
 
@@ -195,6 +195,6 @@ def restore_mac(interface: str | None = None, original_mac: str | None = None) -
                 capture_output=True, timeout=5,
             )
             return True
-    except Exception:
-        pass
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        logger.warning("MAC reset failed on %s: %s", interface, e)
     return False

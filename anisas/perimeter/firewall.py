@@ -11,7 +11,7 @@ import time
 logger = logging.getLogger(__name__)
 
 # Ports commonly tested for firewall behavior
-_PROBE_PORTS = [22, 23, 80, 443, 3389, 8080, 8443, 3306, 5432, 21]
+_PROBE_PORTS = [22, 80, 443, 3389]
 
 
 def _get_local_ip() -> str:
@@ -72,7 +72,7 @@ def checksum(data: bytes) -> int:
     return ~s & 0xFFFF
 
 
-def send_ack_probe(ip: str, port: int, timeout: float = 2.0) -> dict:
+def send_ack_probe(ip: str, port: int, timeout: float = 1.0) -> dict:
     """Send TCP ACK probe and analyze response.
 
     Returns dict with response_type, ttl, and details.
@@ -120,8 +120,8 @@ def send_ack_probe(ip: str, port: int, timeout: float = 2.0) -> dict:
             except socket.timeout:
                 break
         recv_sock.close()
-    except (OSError, PermissionError):
-        pass
+    except (OSError, PermissionError) as e:
+        logger.debug("Raw ACK probe failed on port %d: %s", port, e)
 
     return result
 
@@ -184,8 +184,8 @@ def send_rst_probe(ip: str, port: int, timeout: float = 2.0) -> dict:
             except socket.timeout:
                 break
         recv_sock.close()
-    except (OSError, PermissionError):
-        pass
+    except (OSError, PermissionError) as e:
+        logger.debug("RST probe failed on port %d: %s", port, e)
 
     return result
 

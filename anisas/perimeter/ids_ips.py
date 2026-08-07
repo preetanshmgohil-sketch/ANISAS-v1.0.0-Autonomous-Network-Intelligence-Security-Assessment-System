@@ -19,7 +19,7 @@ _PROBE_SIGNATURES = [
 ]
 
 # Ports to test IDS/IPS on
-_IDS_PORTS = [80, 443, 22, 25, 53, 8080, 8443]
+_IDS_PORTS = [80, 443, 22]
 
 
 def _send_probe(ip: str, port: int, payload: bytes, timeout: float = 2.0) -> dict:
@@ -83,10 +83,10 @@ def _check_rst_injection(ip: str, port: int, timeout: float = 2.0) -> bool:
             try:
                 data1 = sock1.recv(1024)
             except socket.timeout:
-                pass
+                pass  # probe response timeout — expected
             sock1.close()
     except (socket.timeout, OSError):
-        pass
+        pass  # first probe connection failed
 
     # Second connection - check for RST pattern
     try:
@@ -105,10 +105,10 @@ def _check_rst_injection(ip: str, port: int, timeout: float = 2.0) -> bool:
             except (ConnectionResetError, BrokenPipeError):
                 rst_detected = True
             except socket.timeout:
-                pass
+                pass  # probe response timeout — expected
             sock2.close()
     except (socket.timeout, OSError):
-        pass
+        pass  # second probe connection failed
 
     return rst_detected
 

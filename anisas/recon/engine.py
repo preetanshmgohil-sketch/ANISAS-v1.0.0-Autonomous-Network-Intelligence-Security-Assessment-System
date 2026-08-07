@@ -36,6 +36,16 @@ class NetworkReconEngine:
         self.max_prefix_len = max_prefix_len
         self.stealth = stealth or StealthConfig()
 
+    @staticmethod
+    def _is_rfc1918(ip_str: str) -> bool:
+        """Check if an IP is in RFC1918 private ranges."""
+        import ipaddress
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            return ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local
+        except ValueError:
+            return False
+
     def run(
         self,
         target: str,
@@ -65,22 +75,113 @@ class NetworkReconEngine:
         # Use the first prefix as the target for the report
         target_prefix = prefixes[0] if len(prefixes) == 1 else self._aggregate_prefix(prefixes)
 
+        # For external IPs: create a lightweight synthetic report instead of scanning
+        # Extract the actual IP from the target (could be "1.1.1.1" or "1.1.1.0/24")
+        import ipaddress
+        try:
+            ip_obj = ipaddress.ip_address(target.strip())
+            target_ip = str(ip_obj)
+        except ValueError:
+            # Target might be a CIDR — extract the network address
+            try:
+                net = ipaddress.ip_network(target.strip(), strict=False)
+                target_ip = str(net.network_address)
+            except ValueError:
+                target_ip = target.strip().split(",")[0].strip()
+        if self._is_rfc1918(target_ip):
+            # Private/local network — full scan
+            subnets, all_hosts, topology = self._full_scan(prefixes, target_prefix)
+        else:
+            # External IP — lightweight synthetic report
+            logger.info("External IP detected — creating synthetic topology for %s", target_ip)
+            subnets = []
+            all_hosts = [{"ip": target_ip, "ip_address": target_ip, "mac": None, "discovery_method": "RDAP"}]
+            topology = build_topology(target_ip, [], all_hosts)
+            topology.setdefault("nodes", [])
+            # Add target as the only node
+            if not any(n.get("id") == target_ip for n in topology["nodes"]):
+                topology["nodes"].insert(0, {"id": target_ip, "type": "host"})
+            topology.setdefault("edges", [])
+
+        elapsed = time.monotonic() - start
+
+        # Build report
+        from .models import DiscoveredSubnet, ActiveHost, OSFingerprint, OpenPort, TopoNode, TopoEdge, ScanMetadata
+
+        subnet_models = [
+            DiscoveredSubnet(cidr=s, vlan_detected=False, estimated_vlan_id=None)
+            for s in subnets
+        ]
+
+        host_models = []
+        for h in all_hosts:
+            ip_addr = h.get("ip_address") or h.get("ip", "")
+            os_data = h.get("os_fingerprint", {})
+            ports_data = [
+                OpenPort(
+                    port=p["port"],
+                    protocol=p.get("protocol", "tcp"),
+                    service=p.get("service", ""),
+                    banner=p.get("banner"),
+                )
+                for p in h.get("open_ports", [])
+            ]
+            host_models.append(ActiveHost(
+                ip_address=ip_addr,
+                mac_address=h.get("mac_address") or h.get("mac"),
+                status="up",
+                discovery_method=h.get("discovery_method", "ICMP"),
+                os_fingerprint=OSFingerprint(
+                    predicted_os=os_data.get("predicted_os", "Unknown"),
+                    initial_ttl=os_data.get("initial_ttl", 0),
+                    tcp_window_size=os_data.get("tcp_window_size"),
+                ),
+                open_ports=ports_data,
+            ))
+
+        topo_nodes = [TopoNode(id=n["id"], type=n["type"]) for n in topology.get("nodes", [])]
+        topo_edges = [TopoEdge(source=e["source"], target=e["target"]) for e in topology.get("edges", [])]
+
+        report = ReconReport(
+            target_prefix=target_prefix,
+            discovered_subnets=subnet_models,
+            active_hosts=host_models,
+            topology_graph={"nodes": topo_nodes, "edges": topo_edges},
+            scan_metadata=ScanMetadata(
+                stealth_mode_enabled=self.stealth.enabled,
+                total_hosts_found=len(host_models),
+                scan_duration_seconds=round(elapsed, 3),
+            ),
+        )
+
+        # Output
+        if json_output:
+            os.makedirs(os.path.dirname(json_output) or ".", exist_ok=True)
+            with open(json_output, "w", encoding="utf-8") as f:
+                f.write(report.model_dump_json(indent=2))
+            logger.info("JSON report written to %s", json_output)
+
+        logger.info("Recon pipeline completed in %.2f seconds.", elapsed)
+        return report
+
+    def _full_scan(self, prefixes, target_prefix):
+        """Full network scan for private/local networks."""
         # Step 1: Subnet Enumeration
         logger.info("[1/5] Enumerating subnets from %d prefixes ...", len(prefixes))
         subnets = enumerate_subnets(prefixes, self.max_prefix_len)
 
-        # Step 2: Host Discovery
+        # Step 2: Host Discovery (with timeout per subnet)
         logger.info("[2/5] Discovering hosts across %d subnets ...", len(subnets))
         all_hosts: list[dict] = []
-        for subnet in subnets:
+        for subnet in subnets[:5]:  # Limit to 5 subnets max
             hosts = discover_hosts_in_subnet(subnet, self.stealth)
             all_hosts.extend(hosts)
             logger.debug("  %s: %d hosts found", subnet, len(hosts))
 
-        # Step 3: Port Scanning
+        # Step 3: Port Scanning (fast mode)
         logger.info("[3/5] Scanning ports on %d active hosts ...", len(all_hosts))
         host_ips = [h["ip"] for h in all_hosts]
-        port_results = scan_all_hosts_ports(host_ips, self.stealth)
+        port_results = scan_all_hosts_ports(host_ips, self.stealth, fast=True)
 
         # Step 4: OS/Device Fingerprinting
         logger.info("[4/5] Fingerprinting devices ...")
@@ -89,6 +190,8 @@ class NetworkReconEngine:
         # Step 5: Topology Generation
         logger.info("[5/5] Building topology graph ...")
         topology = build_topology(target_prefix, subnets, enriched_hosts)
+
+        return subnets, enriched_hosts, topology
 
         elapsed = time.monotonic() - start
 
@@ -151,7 +254,7 @@ class NetworkReconEngine:
         return report
 
     def _parse_input(self, target: str) -> list[str]:
-        """Parse input — CIDR string, comma-separated CIDRs, or JSON file path."""
+        """Parse input — CIDR string, comma-separated CIDRs, JSON file, or plain IP."""
         target = target.strip()
 
         # Check if it's a file path
@@ -167,7 +270,13 @@ class NetworkReconEngine:
         if self._is_valid_cidr(target):
             return [target]
 
-        return []
+        # Plain IP — convert to /32
+        import ipaddress
+        try:
+            ip = ipaddress.ip_address(target)
+            return [f"{ip}/32"]
+        except ValueError:
+            return []
 
     def _load_prefixes_from_json(self, path: str) -> list[str]:
         """Extract ip_prefixes from a Module 1 JSON report."""

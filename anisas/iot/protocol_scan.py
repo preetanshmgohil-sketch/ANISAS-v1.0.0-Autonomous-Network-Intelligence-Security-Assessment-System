@@ -53,11 +53,11 @@ def probe_rtsp(ip: str, port: int = 554, timeout: float = _TIMEOUT) -> dict:
                         result["server"] = line.split(":", 1)[1].strip()
                         break
         except socket.timeout:
-            pass
+            pass  # banner read timeout — expected for non-responding services
 
         sock.close()
     except (socket.timeout, OSError):
-        pass
+        pass  # connection failed — service likely not running
 
     return result
 
@@ -137,7 +137,7 @@ def probe_http(ip: str, port: int = 80, timeout: float = _TIMEOUT) -> dict:
                     result["title"] = decoded[title_start + 1:title_end].strip()[:256]
 
     except (socket.timeout, OSError):
-        pass
+        pass  # HTTP probe failed — acceptable for non-HTTP services
 
     return result
 
@@ -176,7 +176,7 @@ def probe_onvif_discovery(ip: str, timeout: float = _TIMEOUT) -> dict:
                 result["responded"] = True
                 result["details"] = data.decode("utf-8", errors="replace")[:512]
         except socket.timeout:
-            pass
+            pass  # UDP response timeout — expected for many protocols
 
         sock.close()
     except (socket.timeout, OSError) as e:

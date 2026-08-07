@@ -8,104 +8,114 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0e1a;--bg2:#0f1629;--card:#141b2d;--card2:#1a2340;--border:#1e2d4a;
-  --text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--accent2:#60a5fa;
+  --bg:#060a14;--bg2:#0b1121;--card:#0f1729;--card2:#131d35;--border:#1a2744;
+  --text:#e2e8f0;--muted:#5a6b85;--accent:#3b82f6;--accent2:#60a5fa;
   --green:#22c55e;--green2:#4ade80;--red:#ef4444;--red2:#f87171;
   --orange:#f97316;--yellow:#eab308;--purple:#a855f7;--cyan:#06b6d4;
-  --glow:0 0 20px rgba(59,130,246,0.15);
+  --glow:0 0 20px rgba(59,130,246,0.12);
+  --card-glow:0 4px 24px rgba(0,0,0,0.4);
+  --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 html,body{height:100%}
 body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
 
-.header{background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:20px;position:relative;z-index:20}
-.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.header{background:linear-gradient(135deg,#0c1322 0%,#111b33 100%);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;gap:16px;position:relative;z-index:20}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),var(--purple),var(--cyan),transparent)}
 .header .logo{display:flex;align-items:center;gap:10px}
-.header .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;letter-spacing:-0.5px}
-.header h1{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
-.header .subtitle{color:var(--muted);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:500}
-.header .version{margin-left:auto;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:20px;font-size:10px;color:var(--muted);font-weight:600}
+.header .logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;letter-spacing:-0.5px;box-shadow:0 0 12px rgba(99,102,241,0.3)}
+.header h1{font-size:17px;font-weight:800;background:linear-gradient(135deg,#818cf8,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.header .subtitle{color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;font-weight:500}
+.header .version{margin-left:auto;padding:3px 10px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:20px;font-size:10px;color:var(--accent2);font-weight:600}
 
-.main{display:grid;grid-template-columns:300px 1fr 340px;grid-template-rows:1fr;height:calc(100vh - 56px);gap:1px;background:var(--border)}
+.main{display:grid;grid-template-columns:280px 1fr 380px;grid-template-rows:1fr;height:calc(100vh - 52px);gap:1px;background:var(--border)}
 
 .panel{background:var(--card);overflow:hidden;display:flex;flex-direction:column}
-.panel-header{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-shrink:0}
-.panel-header::before{content:'';width:3px;height:12px;background:var(--accent);border-radius:2px}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.panel-header::before{content:'';width:3px;height:10px;background:var(--accent);border-radius:2px}
 
-.input-section{padding:16px;display:flex;gap:8px;flex-shrink:0}
-.input-section input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:13px;outline:none;transition:all 0.2s}
-.input-section input:focus{border-color:var(--accent);box-shadow:var(--glow)}
+.input-section{padding:12px 14px;display:flex;gap:8px;flex-shrink:0}
+.input-section input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:12px;outline:none;transition:var(--transition)}
+.input-section input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
 .input-section input::placeholder{color:var(--muted)}
 
-.btn{padding:10px 18px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#2563eb);color:#fff;box-shadow:0 2px 10px rgba(59,130,246,0.3)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,0.4)}
-.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none}
-.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
-.btn-secondary:hover{background:var(--border)}
-.btn-secondary:disabled{opacity:0.3;cursor:not-allowed}
+.btn{padding:9px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:11px;transition:var(--transition);text-transform:uppercase;letter-spacing:0.5px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#2563eb);color:#fff;box-shadow:0 2px 12px rgba(59,130,246,0.25)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,0.35)}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--bg2);color:var(--muted);border:1px solid var(--border);font-size:10px}
+.btn-secondary:hover{background:var(--border);color:var(--text)}
+.btn-secondary:disabled{opacity:0.25;cursor:not-allowed}
 
-.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin:12px 16px 0;flex-shrink:0}
-.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:2px;transition:width 0.5s ease}
+.progress-bar{height:2px;background:var(--border);overflow:hidden;margin:0 14px;flex-shrink:0}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--purple),var(--cyan));border-radius:2px;transition:width 0.6s ease}
 
-.module-list{padding:8px 12px;overflow-y:auto;flex:1}
-.module-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:2px;font-size:12px;transition:all 0.2s;cursor:default}
-.module-item:hover{background:var(--bg)}
-.module-item .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid transparent}
+.module-list{padding:6px 10px;overflow-y:auto;flex:1}
+.module-list::-webkit-scrollbar{width:4px}
+.module-list::-webkit-scrollbar-track{background:var(--bg);border-radius:2px}
+.module-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.module-list::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+.module-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:1px;font-size:11px;transition:var(--transition);cursor:default;border:1px solid transparent}
+.module-item:hover{background:rgba(59,130,246,0.04);border-color:rgba(59,130,246,0.1)}
+.module-item .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:2px solid transparent}
 .module-item .status-dot.pending{background:var(--border);border-color:var(--border)}
 .module-item .status-dot.running{background:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(59,130,246,0.5);animation:pulse 1.5s infinite}
 .module-item .status-dot.complete{background:var(--green);border-color:var(--green);box-shadow:0 0 6px rgba(34,197,94,0.3)}
 .module-item .status-dot.failed{background:var(--red);border-color:var(--red)}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.85)}}
-.module-item .name{font-weight:600;min-width:60px}
-.module-item .label{color:var(--muted);font-size:11px;margin-left:auto}
-.module-item .module-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.module-item .name{font-weight:600;min-width:55px}
+.module-item .label{color:var(--muted);font-size:10px;margin-left:auto}
+.module-item .module-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0}
 
-.export-btns{padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--border);flex-shrink:0}
+.export-btns{padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--border);flex-shrink:0}
 .export-btns .btn{flex:1;text-align:center}
 
-.scan-info{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
-.scan-info .info-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0}
+.scan-info{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.scan-info .info-row{display:flex;justify-content:space-between;font-size:10px;padding:2px 0}
 .scan-info .info-row .key{color:var(--muted)}
 .scan-info .info-row .val{color:var(--text);font-weight:600;font-family:'Courier New',monospace}
 
 #topology{width:100%;height:100%}
 
-.perimeter-overlay{position:absolute;top:50px;right:12px;background:rgba(20,27,45,0.95);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:11px;z-index:10;backdrop-filter:blur(10px)}
-.perimeter-overlay .po-title{font-weight:700;margin-bottom:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-size:10px}
-.perimeter-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;margin:2px;border:1px solid transparent}
-.perimeter-badge.active{background:rgba(34,197,94,0.15);color:var(--green2);border-color:rgba(34,197,94,0.3)}
-.perimeter-badge.inactive{background:rgba(100,116,139,0.1);color:var(--muted);border-color:var(--border)}
-.perimeter-badge .dot{width:6px;height:6px;border-radius:50%}
+.perimeter-overlay{position:absolute;top:44px;right:10px;background:rgba(15,23,41,0.95);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:10px;z-index:10;backdrop-filter:blur(12px);box-shadow:var(--card-glow)}
+.perimeter-overlay .po-title{font-weight:700;margin-bottom:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;font-size:9px}
+.perimeter-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:9px;font-weight:700;margin:2px;border:1px solid transparent;transition:var(--transition)}
+.perimeter-badge.active{background:rgba(34,197,94,0.12);color:var(--green2);border-color:rgba(34,197,94,0.25)}
+.perimeter-badge.inactive{background:rgba(100,116,139,0.08);color:var(--muted);border-color:var(--border)}
+.perimeter-badge .dot{width:5px;height:5px;border-radius:50%}
 .perimeter-badge.active .dot{background:var(--green)}
 .perimeter-badge.inactive .dot{background:var(--muted)}
 
 .log-panel{display:flex;flex-direction:column;height:100%}
+.log-panel .tab-content{display:none;flex-direction:column;flex:1;overflow:hidden}
+.log-panel .tab-content.active-tab{display:flex}
 .log-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-.log-tab{flex:1;padding:10px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);cursor:pointer;transition:all 0.2s;border-bottom:2px solid transparent}
+.log-tab{flex:1;padding:9px 4px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);cursor:pointer;transition:var(--transition);border-bottom:2px solid transparent}
 .log-tab:hover{color:var(--text)}
 .log-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.log-content{flex:1;overflow-y:auto;padding:8px 12px;font-family:'Cascadia Code','Fira Code','Courier New',monospace;font-size:11px;line-height:1.7}
-.log-content::-webkit-scrollbar{width:4px}
-.log-content::-webkit-scrollbar-track{background:transparent}
-.log-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.log-entry{padding:3px 0;border-bottom:1px solid rgba(30,45,74,0.3);display:flex;gap:8px;align-items:flex-start}
-.log-entry .ts{color:var(--muted);white-space:nowrap;font-size:10px;min-width:65px}
-.log-entry .mod{color:var(--accent2);font-weight:700;white-space:nowrap;min-width:70px}
+.log-content{flex:1;overflow-y:auto;padding:6px 10px;font-family:'Cascadia Code','Fira Code','Courier New',monospace;font-size:10px;line-height:1.7}
+.log-content::-webkit-scrollbar{width:5px}
+.log-content::-webkit-scrollbar-track{background:var(--bg);border-radius:3px}
+.log-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.log-content::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+.log-entry{padding:2px 0;border-bottom:1px solid rgba(26,39,68,0.3);display:flex;gap:6px;align-items:flex-start}
+.log-entry .ts{color:var(--muted);white-space:nowrap;font-size:9px;min-width:55px}
+.log-entry .mod{color:var(--accent2);font-weight:700;white-space:nowrap;min-width:60px}
 .log-entry .msg{flex:1}
 .log-entry .running{color:var(--accent2)}
 .log-entry .complete{color:var(--green2)}
 .log-entry .failed{color:var(--red2)}
 .log-entry .warning{color:var(--yellow)}
 
-.summary-panel{overflow-y:auto;flex:1}
-.summary-panel::-webkit-scrollbar{width:4px}
-.summary-panel::-webkit-scrollbar-track{background:transparent}
-.summary-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px}
-.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;transition:all 0.3s;position:relative;overflow:hidden}
+.summary-panel{overflow-y:auto;flex:1;scroll-behavior:smooth}
+.summary-panel::-webkit-scrollbar{width:5px}
+.summary-panel::-webkit-scrollbar-track{background:var(--bg);border-radius:3px}
+.summary-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.summary-panel::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 14px}
+.stat-card{background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;transition:var(--transition);position:relative;overflow:hidden}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.stat-card .value{font-size:28px;font-weight:800;letter-spacing:-1px}
-.stat-card .label{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.stat-card .value{font-size:24px;font-weight:800;letter-spacing:-1px}
+.stat-card .label{font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
 .stat-card.danger::before{background:var(--red)}
 .stat-card.danger .value{color:var(--red)}
 .stat-card.warning::before{background:var(--orange)}
@@ -116,61 +126,142 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
 .stat-card.info .value{color:var(--accent)}
 .stat-card.purple::before{background:var(--purple)}
 .stat-card.purple .value{color:var(--purple)}
+.stat-card.cyan::before{background:var(--cyan)}
+.stat-card.cyan .value{color:var(--cyan)}
 
-.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:12px 16px 6px;display:flex;align-items:center;gap:6px}
-.section-title::before{content:'';width:2px;height:10px;border-radius:1px;background:var(--accent)}
+.stat-grid-wide{grid-template-columns:1fr 1fr 1fr}
 
-.threat-list{padding:0 16px}
-.threat-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:11px;line-height:1.5;transition:all 0.2s}
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent2);padding:14px 14px 6px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);margin-top:4px}
+.section-title:first-child{border-top:none;margin-top:0}
+.section-title::before{content:'';width:3px;height:12px;border-radius:2px;background:linear-gradient(180deg,var(--accent),var(--purple))}
+
+.perimeter-detail-grid{padding:0 14px 6px;display:flex;flex-direction:column;gap:6px}
+.perimeter-detail-grid.col2{flex-direction:row;flex-wrap:wrap}
+.perimeter-detail-grid.col2>.perimeter-detail-card{flex:1 1 calc(50% - 3px);min-width:0}
+.perimeter-detail-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;transition:var(--transition);word-break:break-word;overflow:hidden}
+.perimeter-detail-card:hover{border-color:rgba(59,130,246,0.2)}
+.perimeter-detail-card .pd-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.perimeter-detail-card .pd-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.perimeter-detail-card .pd-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perimeter-detail-card .pd-status{font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:0.3px;margin-left:auto;white-space:nowrap;flex-shrink:0}
+.pd-status.detected{background:rgba(34,197,94,0.12);color:var(--green)}
+.pd-status.not-detected{background:rgba(100,116,139,0.1);color:var(--muted)}
+.perimeter-detail-card .pd-rows{font-size:10px}
+.perimeter-detail-card .pd-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(26,39,68,0.2);gap:8px}
+.perimeter-detail-card .pd-row:last-child{border:none}
+.perimeter-detail-card .pd-key{color:var(--muted);flex-shrink:0;width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.perimeter-detail-card .pd-val{font-weight:600;text-align:right;word-break:break-word;overflow-wrap:anywhere;flex:1;min-width:0}
+
+.os-dist-list{padding:0 14px 8px}
+.os-dist-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:10px}
+.os-dist-bar-bg{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.os-dist-bar{height:100%;border-radius:3px;transition:width 0.6s ease}
+.os-dist-name{min-width:70px;font-weight:600}
+.os-dist-count{color:var(--muted);min-width:20px;text-align:right}
+
+.threat-list{padding:0 14px}
+.threat-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px;font-size:10px;line-height:1.5;transition:var(--transition)}
 .threat-item:hover{border-color:var(--accent)}
-.threat-item.critical{border-left:3px solid var(--red);background:linear-gradient(90deg,rgba(239,68,68,0.05),transparent)}
-.threat-item.high{border-left:3px solid var(--orange);background:linear-gradient(90deg,rgba(249,115,22,0.05),transparent)}
-.threat-item.medium{border-left:3px solid var(--yellow);background:linear-gradient(90deg,rgba(234,179,8,0.05),transparent)}
-.threat-item.low{border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(34,197,94,0.05),transparent)}
-.threat-item .threat-label{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
+.threat-item.critical{border-left:3px solid var(--red);background:linear-gradient(90deg,rgba(239,68,68,0.04),transparent)}
+.threat-item.high{border-left:3px solid var(--orange);background:linear-gradient(90deg,rgba(249,115,22,0.04),transparent)}
+.threat-item.medium{border-left:3px solid var(--yellow);background:linear-gradient(90deg,rgba(234,179,8,0.04),transparent)}
+.threat-item.low{border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(34,197,94,0.04),transparent)}
+.threat-item .threat-label{font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
 .threat-item.critical .threat-label{color:var(--red)}
 .threat-item.high .threat-label{color:var(--orange)}
 .threat-item.medium .threat-label{color:var(--yellow)}
 
-.recommendations{padding:0 16px 16px}
-.rec-item{font-size:11px;padding:8px 0;border-bottom:1px solid rgba(30,45,74,0.3);line-height:1.5;display:flex;gap:8px}
-.rec-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0}
+.recommendations{padding:0 14px 10px}
+.rec-item{font-size:10px;padding:6px 0;border-bottom:1px solid rgba(26,39,68,0.2);line-height:1.5;display:flex;gap:6px}
+.rec-item::before{content:'›';color:var(--accent);font-weight:700;flex-shrink:0;font-size:12px}
 
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
 .modal-overlay.active{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:650px;max-height:80vh;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5)}
-.modal-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--card2)}
-.modal-header h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
-.modal-header h3::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.modal-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:620px;max-height:80vh;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5)}
+.modal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--card2)}
+.modal-header h3{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.modal-header h3::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.modal-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:16px;cursor:pointer;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
 .modal-close:hover{background:var(--red);color:#fff;border-color:var(--red)}
-.modal-body{padding:20px 24px;overflow-y:auto;max-height:calc(80vh - 60px)}
-.modal-body::-webkit-scrollbar{width:4px}
+.modal-body{padding:16px 20px;overflow-y:auto;max-height:calc(80vh - 52px)}
+.modal-body::-webkit-scrollbar{width:3px}
 .modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(30,45,74,0.3);font-size:12px}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(26,39,68,0.2);font-size:11px}
 .detail-row .key{color:var(--muted);font-weight:500}
 .detail-row .val{font-weight:600;text-align:right;max-width:60%}
-.detail-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);padding:14px 0 6px;border-bottom:1px solid var(--border);margin-top:8px}
-.port-badge{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;margin:2px;font-size:10px;font-family:'Courier New',monospace}
-.risk-badge{display:inline-block;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:0.5px}
-.risk-badge.CRITICAL{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
-.risk-badge.HIGH{background:rgba(249,115,22,0.15);color:var(--orange);border:1px solid rgba(249,115,22,0.3)}
-.risk-badge.MEDIUM{background:rgba(234,179,8,0.15);color:var(--yellow);border:1px solid rgba(234,179,8,0.3)}
-.risk-badge.LOW{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.detail-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);padding:12px 0 5px;border-bottom:1px solid var(--border);margin-top:6px}
+.port-badge{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:2px 8px;margin:1px;font-size:9px;font-family:'Courier New',monospace}
+.risk-badge{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:800;letter-spacing:0.3px}
+.risk-badge.CRITICAL{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.25)}
+.risk-badge.HIGH{background:rgba(249,115,22,0.12);color:var(--orange);border:1px solid rgba(249,115,22,0.25)}
+.risk-badge.MEDIUM{background:rgba(234,179,8,0.12);color:var(--yellow);border:1px solid rgba(234,179,8,0.25)}
+.risk-badge.LOW{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.25)}
 
-.empty-state{color:var(--muted);padding:30px;text-align:center;font-size:12px;line-height:1.6}
-.empty-state .icon{font-size:32px;margin-bottom:10px;opacity:0.3}
+.empty-state{color:var(--muted);padding:24px;text-align:center;font-size:11px;line-height:1.6}
+.empty-state .icon{font-size:28px;margin-bottom:8px;opacity:0.2}
 
-.topo-legend{position:absolute;bottom:12px;left:12px;background:rgba(20,27,45,0.95);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:10px;z-index:10;backdrop-filter:blur(10px)}
-.topo-legend .legend-title{font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-size:9px}
-.topo-legend .legend-item{display:flex;align-items:center;gap:8px;padding:2px 0}
-.topo-legend .legend-dot{width:8px;height:8px;border-radius:50%}
+.topo-legend{position:absolute;bottom:10px;left:10px;background:rgba(15,23,41,0.95);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:9px;z-index:10;backdrop-filter:blur(12px)}
+.topo-legend .legend-title{font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-size:8px}
+.topo-legend .legend-item{display:flex;align-items:center;gap:6px;padding:1px 0}
+.topo-legend .legend-dot{width:7px;height:7px;border-radius:50%}
 
-.topo-stats{position:absolute;bottom:12px;right:12px;background:rgba(20,27,45,0.95);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:10px;z-index:10;backdrop-filter:blur(10px);display:flex;gap:16px}
+.topo-stats{position:absolute;bottom:10px;right:10px;background:rgba(15,23,41,0.95);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:9px;z-index:10;backdrop-filter:blur(12px);display:flex;gap:14px}
 .topo-stats .ts-item{text-align:center}
-.topo-stats .ts-val{font-size:18px;font-weight:800}
-.topo-stats .ts-label{color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-size:8px;margin-top:2px}
+.topo-stats .ts-val{font-size:16px;font-weight:800}
+.topo-stats .ts-label{color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-size:7px;margin-top:1px}
+
+.wireless-list{padding:0 14px 6px}
+.wireless-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px;font-size:10px;word-break:break-word}
+.wireless-card .wc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px}
+.wireless-card .wc-ssid{font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wireless-card .wc-enc{font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.wc-enc.open{background:rgba(239,68,68,0.12);color:var(--red)}
+.wc-enc.secure{background:rgba(34,197,94,0.12);color:var(--green)}
+.wireless-card .wc-row{display:flex;justify-content:space-between;padding:1px 0;gap:4px}
+
+.pipeline-container{padding:14px;display:flex;flex-direction:column;gap:0;align-items:center}
+.pipeline-node{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;width:100%;max-width:320px;transition:var(--transition);position:relative}
+.pipeline-node:hover{border-color:rgba(59,130,246,0.3)}
+.pipeline-node .pn-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pipeline-node .pn-num{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.pipeline-node .pn-title{font-size:11px;font-weight:700;flex:1}
+.pipeline-node .pn-status{font-size:8px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap}
+.pn-status.pending{background:rgba(100,116,139,0.1);color:var(--muted)}
+.pn-status.running{background:rgba(59,130,246,0.15);color:var(--accent2);animation:pulse 1.5s infinite}
+.pn-status.complete{background:rgba(34,197,94,0.12);color:var(--green)}
+.pn-status.failed{background:rgba(239,68,68,0.12);color:var(--red)}
+.pipeline-node .pn-data{font-size:9px;color:var(--muted);line-height:1.5}
+.pipeline-node .pn-data .pn-tag{display:inline-block;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:4px;padding:1px 5px;margin:1px;font-size:8px;color:var(--accent2)}
+.pipeline-node .pn-data .pn-tag.out{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.15);color:var(--green2)}
+.pipeline-arrow{width:2px;height:20px;background:linear-gradient(180deg,var(--border),var(--accent),var(--border));position:relative;flex-shrink:0}
+.pipeline-arrow::after{content:'▼';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--accent)}
+.pipeline-arrow.active{background:linear-gradient(180deg,var(--green),var(--accent))}
+.pipeline-arrow.active::after{color:var(--green)}
+
+.country-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--accent2)}
+
+.module-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:6px 14px}
+
+table{width:100%;border-collapse:collapse;font-size:9px;table-layout:auto}
+table th{padding:4px 6px;text-align:left;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap;color:var(--accent2);background:rgba(59,130,246,0.05);position:sticky;top:0;z-index:1}
+table td{padding:3px 6px;border-bottom:1px solid rgba(26,39,68,0.2);word-break:break-word;overflow-wrap:anywhere}
+table td:first-child{font-family:'Courier New',monospace;font-weight:600}
+table td:last-child{min-width:0}
+table::-webkit-scrollbar{height:4px}
+table::-webkit-scrollbar-track{background:var(--bg)}
+table::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+*::-webkit-scrollbar{width:5px}
+*::-webkit-scrollbar-track{background:var(--bg)}
+*::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+*::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+.iot-list{padding:0 14px 8px}
+.iot-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px;font-size:10px}
+.iot-card .ic-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.iot-card .ic-ip{font-weight:700;font-family:'Courier New',monospace}
+.iot-card .ic-type{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:rgba(168,85,247,0.12);color:var(--purple)}
 </style>
 </head>
 <body>
@@ -198,37 +289,37 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
     <div class="module-list" id="moduleList">
       <div class="module-item" id="mod-m1">
         <span class="status-dot pending" id="dot-m1"></span>
-        <span class="module-icon" style="background:rgba(59,130,246,0.15);color:var(--accent)">01</span>
+        <span class="module-icon" style="background:rgba(59,130,246,0.12);color:var(--accent)">01</span>
         <span class="name">ASN & ISP</span>
         <span class="label">Recon</span>
       </div>
       <div class="module-item" id="mod-m2">
         <span class="status-dot pending" id="dot-m2"></span>
-        <span class="module-icon" style="background:rgba(6,182,212,0.15);color:var(--cyan)">02</span>
+        <span class="module-icon" style="background:rgba(6,182,212,0.12);color:var(--cyan)">02</span>
         <span class="name">Network Recon</span>
         <span class="label">Discovery</span>
       </div>
       <div class="module-item" id="mod-m3">
         <span class="status-dot pending" id="dot-m3"></span>
-        <span class="module-icon" style="background:rgba(239,68,68,0.15);color:var(--red)">03</span>
+        <span class="module-icon" style="background:rgba(239,68,68,0.12);color:var(--red)">03</span>
         <span class="name">Perimeter</span>
         <span class="label">Defense</span>
       </div>
       <div class="module-item" id="mod-m4">
         <span class="status-dot pending" id="dot-m4"></span>
-        <span class="module-icon" style="background:rgba(249,115,22,0.15);color:var(--orange)">04</span>
+        <span class="module-icon" style="background:rgba(249,115,22,0.12);color:var(--orange)">04</span>
         <span class="name">IoT Fingerprint</span>
         <span class="label">Devices</span>
       </div>
       <div class="module-item" id="mod-m5">
         <span class="status-dot pending" id="dot-m5"></span>
-        <span class="module-icon" style="background:rgba(168,85,247,0.15);color:var(--purple)">05</span>
+        <span class="module-icon" style="background:rgba(168,85,247,0.12);color:var(--purple)">05</span>
         <span class="name">Wireless Intel</span>
         <span class="label">RF</span>
       </div>
       <div class="module-item" id="mod-m6">
         <span class="status-dot pending" id="dot-m6"></span>
-        <span class="module-icon" style="background:rgba(34,197,94,0.15);color:var(--green)">06</span>
+        <span class="module-icon" style="background:rgba(34,197,94,0.12);color:var(--green)">06</span>
         <span class="name">AI/ML Engine</span>
         <span class="label">Analytics</span>
       </div>
@@ -276,16 +367,18 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
     <div class="log-tabs">
       <div class="log-tab active" onclick="switchTab('logs')">Live Logs</div>
       <div class="log-tab" onclick="switchTab('summary')">Summary</div>
+      <div class="log-tab" onclick="switchTab('pipeline')">Pipeline</div>
+      <div class="log-tab" onclick="switchTab('results')">Results</div>
       <div class="log-tab" onclick="switchTab('threats')">Threats</div>
     </div>
 
-    <div id="tab-logs" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div id="tab-logs" class="tab-content active-tab">
       <div class="log-content" id="logContent">
         <div class="empty-state"><div class="icon">◉</div>Waiting for scan to start...</div>
       </div>
     </div>
 
-    <div id="tab-summary" style="display:none;flex:1;overflow:hidden">
+    <div id="tab-summary" class="tab-content">
       <div class="summary-panel">
         <div class="stat-grid">
           <div class="stat-card info"><div class="value" id="stat-devices">0</div><div class="label">Devices</div></div>
@@ -293,8 +386,13 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
           <div class="stat-card success"><div class="value" id="stat-health">100</div><div class="label">Health</div></div>
           <div class="stat-card warning"><div class="value" id="stat-critical">0</div><div class="label">Critical</div></div>
         </div>
+        <div class="stat-grid stat-grid-wide" style="padding:0 14px 6px">
+          <div class="stat-card purple"><div class="value" id="stat-fw" style="font-size:14px">—</div><div class="label">Firewall</div></div>
+          <div class="stat-card cyan"><div class="value" id="stat-ids" style="font-size:14px">—</div><div class="label">IDS/IPS</div></div>
+          <div class="stat-card info"><div class="value" id="stat-waf" style="font-size:14px">—</div><div class="label">WAF</div></div>
+        </div>
         <div class="section-title">Risk Assessment</div>
-        <div style="padding:0 16px 12px" id="riskAssessment">
+        <div style="padding:0 14px 10px" id="riskAssessment">
           <div class="empty-state">Scan completed to view risk assessment</div>
         </div>
         <div class="section-title">Recommended Mitigations</div>
@@ -304,14 +402,26 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
       </div>
     </div>
 
-    <div id="tab-threats" style="display:none;flex:1;overflow:hidden">
+    <div id="tab-pipeline" class="tab-content">
+      <div class="summary-panel" id="pipelinePanel">
+        <div class="empty-state"><div class="icon">◉</div>Pipeline diagram appears during scan</div>
+      </div>
+    </div>
+
+    <div id="tab-results" class="tab-content">
+      <div class="summary-panel" id="resultsPanel">
+        <div class="empty-state"><div class="icon">◉</div>Results appear after scan completes</div>
+      </div>
+    </div>
+
+    <div id="tab-threats" class="tab-content">
       <div class="summary-panel">
         <div class="section-title">Identified Threats</div>
         <div class="threat-list" id="threatList">
           <div class="empty-state">No threats detected yet</div>
         </div>
         <div class="section-title">Device Classifications</div>
-        <div id="deviceClassList" style="padding:0 16px">
+        <div id="deviceClassList" style="padding:0 14px">
           <div class="empty-state">Classifications appear after scan</div>
         </div>
       </div>
@@ -335,14 +445,17 @@ let scanId=null,eventSource=null,network=null,allResults={},scanStartTime=null;
 
 function switchTab(tab){
   document.querySelectorAll('.log-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.log-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(tab==='logs'?'live':tab))t.classList.add('active')});
-  document.getElementById('tab-logs').style.display=tab==='logs'?'flex':'none';
-  document.getElementById('tab-summary').style.display=tab==='summary'?'flex':'none';
-  document.getElementById('tab-threats').style.display=tab==='threats'?'flex':'none';
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active-tab'));
+  var tabEl=document.getElementById('tab-'+tab);
+  if(tabEl)tabEl.classList.add('active-tab');
   document.querySelectorAll('.log-tab').forEach(t=>{
-    t.classList.remove('active');
-    if((tab==='logs'&&t.textContent.includes('Live'))||(tab==='summary'&&t.textContent.includes('Summary'))||(tab==='threats'&&t.textContent.includes('Threats')))t.classList.add('active');
+    if((tab==='logs'&&t.textContent.includes('Live'))||
+       (tab==='summary'&&t.textContent.includes('Summary'))||
+       (tab==='pipeline'&&t.textContent.includes('Pipeline'))||
+       (tab==='results'&&t.textContent.includes('Results'))||
+       (tab==='threats'&&t.textContent.includes('Threats')))t.classList.add('active');
   });
+  if(tab==='pipeline')renderPipeline();
 }
 
 function startScan(){
@@ -388,8 +501,17 @@ function streamLogs(){
       document.getElementById('progressFill').style.width='100%';
       fetchResults();
     }
+    // Also fetch on FAILED so partial results still show
+    if(data.status==='FAILED'&&data.module==='Orchestrator'){
+      eventSource.close();
+      fetchResults();
+    }
   };
-  eventSource.onerror=function(){setTimeout(streamLogs,2000)};
+  eventSource.onerror=function(){
+    setTimeout(streamLogs,2000);
+    // On stream error, also try to fetch whatever results are available
+    if(scanId)fetchResults();
+  };
 }
 
 function appendLog(entry){
@@ -399,19 +521,23 @@ function appendLog(entry){
   const ts=entry.timestamp?entry.timestamp.split('T')[1].split('.')[0]:'';
   const line=document.createElement('div');
   line.className='log-entry';
-  line.innerHTML=`<span class="ts">${ts}</span><span class="mod">[${entry.module||''}]</span><span class="msg ${cls}">${entry.log_message||''}</span>`;
+  line.innerHTML='<span class="ts">'+ts+'</span><span class="mod">['+(entry.module||'')+']</span><span class="msg '+cls+'">'+(entry.log_message||'')+'</span>';
   el.appendChild(line);
   el.scrollTop=el.scrollHeight;
 }
 
 function updateModuleStatus(data){
-  const map={'Module-01':'m1','Module-02':'m2','Module-03':'m3','Module-04':'m4','Module-05':'m5','Module-06':'m6'};
-  const key=map[data.module];
+  var map={'Module-01':'m1','Module-02':'m2','Module-03':'m3','Module-04':'m4','Module-05':'m5','Module-06':'m6'};
+  var key=map[data.module];
   if(key){
-    const dot=document.getElementById('dot-'+key);
+    var dot=document.getElementById('dot-'+key);
     if(dot)dot.className='status-dot '+(data.status?data.status.toLowerCase():'running');
-    const modIdx=parseInt(key.replace('m',''));
+    var modIdx=parseInt(key.replace('m',''));
     document.getElementById('progressFill').style.width=Math.min((modIdx/6)*100,99)+'%';
+    // Fetch results after each module completes so data shows even if later modules hang
+    if(data.status==='COMPLETE'){
+      fetchResults();
+    }
   }
 }
 
@@ -419,46 +545,60 @@ function fetchResults(){
   if(!scanId)return;
   fetch('/api/v1/scan/results/'+scanId).then(r=>r.json()).then(d=>{
     allResults=d;
-    document.getElementById('startBtn').disabled=false;
-    document.getElementById('startBtn').textContent='Scan';
-    document.getElementById('exportJsonBtn').disabled=false;
-    document.getElementById('exportPdfBtn').disabled=false;
+    // Only re-enable buttons if scan is fully complete
+    if(d.module6&&d.module6!==undefined){
+      document.getElementById('startBtn').disabled=false;
+      document.getElementById('startBtn').textContent='Scan';
+      document.getElementById('exportJsonBtn').disabled=false;
+      document.getElementById('exportPdfBtn').disabled=false;
+    }
     renderTopology();
     renderSummary();
+    renderResults();
     renderThreats();
     renderDeviceList();
+    renderPipeline();
   }).catch(e=>console.error(e));
 }
 
 function renderTopology(){
-  const nodes=[],edges=[];
-  const m2=allResults.module2||{};
-  const m6=allResults.module6||{};
-  const clsMap=m6.device_classifications||[];
-  const clsByIp={};clsMap.forEach(c=>{clsByIp[c.ip_address]=c});
-  const subnets=m2.discovered_subnets||[];
-  let totalPorts=0;
-  subnets.forEach(s=>{nodes.push({id:s.cidr,label:s.cidr,group:'subnet',shape:'box',color:{background:'#0f2847',border:'#1e4d8c',highlight:{background:'#1a3a5c',border:'#3b82f6'}},font:{color:'#94a3b8',size:10,face:'system-ui'}, borderWidth:2})});
-  const hosts=m2.active_hosts||[];
-  hosts.forEach(h=>{
-    const ip=h.ip_address;const cls=clsByIp[ip]||{};
-    const devType=cls.predicted_device_type||'device';
-    const risk=cls.risk_category||'LOW';
-    const colorMap={'Server':'#22c55e','Workstation':'#3b82f6','Surveillance Device':'#f97316','IoT/Embedded':'#a855f7','Network Gear':'#eab308','Unclassified':'#64748b'};
-    const riskColor={'CRITICAL':'#ef4444','HIGH':'#f97316','MEDIUM':'#eab308','LOW':'#22c55e'};
-    const sz=Math.min(10+(h.open_ports||[]).length*2,20);
-    nodes.push({id:ip,label:ip+'\n'+devType,group:'device',shape:'dot',size:sz,color:{background:colorMap[devType]||'#64748b',border:riskColor[risk]||'#22c55e',highlight:{background:colorMap[devType]||'#64748b',border:'#fff'}},font:{color:'#e2e8f0',size:10,face:'system-ui'},borderWidth:2});
-    if(h.open_ports)totalPorts+=h.open_ports.length;
-    const parent=subnets.find(s=>{try{const p=s.cidr.split('/');const base=p[0].split('.').map(Number);const host=ip.split('.').map(Number);const mask=parseInt(p[1]);const bits=new Array(32).fill(0);for(let i=0;i<mask;i++)bits[i]=1;const bm=[bits.slice(0,8),bits.slice(8,16),bits.slice(16,24),bits.slice(24,32)].map(b=>parseInt(b.map(x=>x).join(''),2));return base.every((v,i)=>(v&bm[i])===((host[i]||0)&bm[i]))}catch(e){return false}});
-    if(parent)edges.push({from:ip,to:parent.cidr,width:1,color:{color:'#2a3a5c'},smooth:{type:'continuous'}});
+  var nodes=[],edges=[];
+  var m2=allResults.module2||{};
+  var m6=allResults.module6||{};
+  var clsMap=m6.device_classifications||[];
+  var clsByIp={};clsMap.forEach(function(c){clsByIp[c.ip_address]=c});
+  var subnets=m2.discovered_subnets||[];
+  var totalPorts=0;
+  subnets.forEach(function(s){
+    nodes.push({id:s.cidr,label:s.cidr,group:'subnet',shape:'box',
+      color:{background:'#0a1e3d',border:'#1e4d8c',highlight:{background:'#122d52',border:'#3b82f6'}},
+      font:{color:'#7a8ba8',size:9,face:'system-ui'},borderWidth:2});
   });
-  const m3=allResults.module3||{};const defs=m3.perimeter_defenses||{};
-  if(defs.firewall&&defs.firewall.detected)nodes.push({id:'firewall',label:'🔥 Firewall',group:'perimeter',shape:'diamond',color:{background:'rgba(239,68,68,0.2)',border:'#ef4444'},size:22,font:{color:'#f87171',size:11},borderWidth:2});
-  if(defs.ids_ips&&defs.ids_ips.detected)nodes.push({id:'ids',label:'🛡 IDS/IPS',group:'perimeter',shape:'diamond',color:{background:'rgba(249,115,22,0.2)',border:'#f97316'},size:22,font:{color:'#fb923c',size:11},borderWidth:2});
-  if(defs.waf&&defs.waf.detected)nodes.push({id:'waf',label:'🔒 WAF',group:'perimeter',shape:'diamond',color:{background:'rgba(168,85,247,0.2)',border:'#a855f7'},size:22,font:{color:'#c084fc',size:11},borderWidth:2});
-  const container=document.getElementById('topology');
-  const data={nodes:new vis.DataSet(nodes),edges:new vis.DataSet(edges)};
-  const options={physics:{enabled:true,solver:'forceAtlas2Based',forceAtlas2Based:{gravitationalConstant:-40,centralGravity:0.008,springLength:160,springConstant:0.02},stabilization:{iterations:150}},interaction:{hover:true,tooltipDelay:200,hideEdgesOnDrag:true},nodes:{font:{face:'system-ui'}},edges:{smooth:{type:'continuous'}}};
+  var hosts=m2.active_hosts||[];
+  hosts.forEach(function(h){
+    var ip=h.ip_address;var cls=clsByIp[ip]||{};
+    var devType=cls.predicted_device_type||'device';
+    var risk=cls.risk_category||'LOW';
+    var colorMap={'Server':'#22c55e','Workstation':'#3b82f6','Surveillance Device':'#f97316','IoT/Embedded':'#a855f7','Network Gear':'#eab308','Unclassified':'#64748b'};
+    var riskColor={'CRITICAL':'#ef4444','HIGH':'#f97316','MEDIUM':'#eab308','LOW':'#22c55e'};
+    var sz=Math.min(10+(h.open_ports||[]).length*2,20);
+    nodes.push({id:ip,label:ip+'\n'+devType,group:'device',shape:'dot',size:sz,
+      color:{background:colorMap[devType]||'#64748b',border:riskColor[risk]||'#22c55e',
+        highlight:{background:colorMap[devType]||'#64748b',border:'#fff'}},
+      font:{color:'#e2e8f0',size:9,face:'system-ui'},borderWidth:2});
+    if(h.open_ports)totalPorts+=h.open_ports.length;
+    var parent=subnets.find(function(s){
+      try{var p=s.cidr.split('/');var base=p[0].split('.').map(Number);var host=ip.split('.').map(Number);var mask=parseInt(p[1]);var bits=new Array(32).fill(0);for(var i=0;i<mask;i++)bits[i]=1;var bm=[bits.slice(0,8),bits.slice(8,16),bits.slice(16,24),bits.slice(24,32)].map(function(b){return parseInt(b.map(function(x){return x}).join(''),2)});return base.every(function(v,i){return(v&bm[i])===((host[i]||0)&bm[i])})}catch(e){return false}
+    });
+    if(parent)edges.push({from:ip,to:parent.cidr,width:1,color:{color:'#1e3050'},smooth:{type:'continuous'}});
+  });
+  var m3=allResults.module3||{};var defs=m3.perimeter_defenses||{};
+  if(defs.firewall&&defs.firewall.detected)nodes.push({id:'firewall',label:'FW',group:'perimeter',shape:'diamond',color:{background:'rgba(239,68,68,0.15)',border:'#ef4444'},size:20,font:{color:'#f87171',size:10},borderWidth:2});
+  if(defs.ids_ips&&defs.ids_ips.detected)nodes.push({id:'ids',label:'IPS',group:'perimeter',shape:'diamond',color:{background:'rgba(249,115,22,0.15)',border:'#f97316'},size:20,font:{color:'#fb923c',size:10},borderWidth:2});
+  if(defs.waf&&defs.waf.detected)nodes.push({id:'waf',label:'WAF',group:'perimeter',shape:'diamond',color:{background:'rgba(168,85,247,0.15)',border:'#a855f7'},size:20,font:{color:'#c084fc',size:10},borderWidth:2});
+  var container=document.getElementById('topology');
+  var data={nodes:new vis.DataSet(nodes),edges:new vis.DataSet(edges)};
+  var options={physics:{enabled:true,solver:'forceAtlas2Based',forceAtlas2Based:{gravitationalConstant:-40,centralGravity:0.008,springLength:160,springConstant:0.02},stabilization:{iterations:150}},interaction:{hover:true,tooltipDelay:200,hideEdgesOnDrag:true},nodes:{font:{face:'system-ui'}},edges:{smooth:{type:'continuous'}}};
   if(network)network.destroy();
   network=new vis.Network(container,data,options);
   network.on('click',function(params){if(params.nodes.length>0)showNodeDetail(params.nodes[0])});
@@ -469,91 +609,729 @@ function renderTopology(){
 }
 
 function updatePerimeterOverlay(defs){
-  ['firewall','ids_ips','dmz','waf'].forEach(k=>{
-    const el=document.getElementById('p-'+k.replace('_','-'));
-    if(el&&defs[k])el.className='perimeter-badge '+(defs[k].detected?'active':'inactive');
+  var idMap={firewall:'p-fw',ids_ips:'p-ids',dmz:'p-dmz',waf:'p-waf'};
+  Object.entries(idMap).forEach(function(pair){
+    var key=pair[0],elId=pair[1];
+    var el=document.getElementById(elId);
+    if(el&&defs[key])el.className='perimeter-badge '+(defs[key].detected?'active':'inactive');
   });
 }
 
 function renderSummary(){
-  const m6=allResults.module6||{};const s=m6.ai_analytics_summary||{};
+  var m6=allResults.module6||{};var s=m6.ai_analytics_summary||{};
   document.getElementById('stat-devices').textContent=s.total_devices_analyzed||0;
   document.getElementById('stat-anomalies').textContent=s.anomalies_detected_count||0;
   document.getElementById('stat-health').textContent=Math.round(s.network_health_score||0);
-  const cls=m6.device_classifications||[];
-  const critical=cls.filter(c=>c.risk_category==='CRITICAL').length;
+  var cls=m6.device_classifications||[];
+  var critical=cls.filter(function(c){return c.risk_category==='CRITICAL'}).length;
   document.getElementById('stat-critical').textContent=critical;
-  const nl=m6.executive_nl_summary||{};
-  const ra=document.getElementById('riskAssessment');
-  if(nl.risk_level){
-    const rl=nl.risk_level.toUpperCase();
-    const cls=rl==='HIGH'||rl==='CRITICAL'?'critical':rl==='MEDIUM'?'high':'low';
-    ra.innerHTML=`<div class="threat-item ${cls}"><div class="threat-label">${nl.risk_level} Risk</div>${nl.overview_paragraph||''}</div>`;
+  var m3=allResults.module3||{};var defs=m3.perimeter_defenses||{};
+  document.getElementById('stat-fw').textContent=defs.firewall&&defs.firewall.detected?'Active':'None';
+  document.getElementById('stat-ids').textContent=defs.ids_ips&&defs.ids_ips.detected?'Active':'None';
+  document.getElementById('stat-waf').textContent=defs.waf&&defs.waf.detected?'Active':'None';
+  // Module 1 summary: ASN, ISP, Country
+  var m1=allResults.module1||{};
+  var asn=m1.asn_details||[];
+  var isp=m1.isp_profile||{};
+  var risk1=m1.ai_risk_summary||{};
+  var countries=[];
+  var seen={};
+  asn.forEach(function(a){
+    if(a.country&&!seen[a.country]){seen[a.country]=true;countries.push(a.country)}
+  });
+  var primaryAsn=asn.length?asn[0]:null;
+  // Update firewall stat card to show ASN/ISP info
+  if(primaryAsn){
+    document.getElementById('stat-fw').textContent=primaryAsn.asn||'N/A';
+    document.getElementById('stat-fw').title=primaryAsn.organization||'';
   }
-  const rl=document.getElementById('recList');rl.innerHTML='';
-  (nl.recommended_mitigations||[]).forEach(m=>{rl.innerHTML+=`<div class="rec-item">${m}</div>`});
+  if(isp.name){
+    document.getElementById('stat-ids').textContent=isp.name.length>15?isp.name.substring(0,15)+'...':isp.name;
+    document.getElementById('stat-ids').title=isp.name;
+  }
+  if(countries.length){
+    document.getElementById('stat-waf').textContent=countries.join(', ');
+  }
+  var nl=m6.executive_nl_summary||{};
+  var ra=document.getElementById('riskAssessment');
+  if(countries.length||nl.risk_level){
+    var raHtml='';
+    if(countries.length){
+      raHtml+='<div style="margin-bottom:6px">';
+      raHtml+='<span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Geolocation:</span> ';
+      countries.forEach(function(c){raHtml+='<span class="country-badge" style="margin:1px">'+c+'</span> '});
+      raHtml+='</div>';
+    }
+    if(risk1.risk_score!=null){
+      raHtml+='<div style="margin-bottom:6px">';
+      raHtml+='<span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Risk Score:</span> ';
+      raHtml+='<span style="font-size:11px;font-weight:700;color:'+(risk1.risk_score>=7?'var(--red)':risk1.risk_score>=4?'var(--orange)':'var(--green)')+'">'+risk1.risk_score.toFixed(1)+'/10</span>';
+      if(risk1.risk_level)raHtml+=' <span style="font-size:9px;color:var(--muted)">'+risk1.risk_level+'</span>';
+      raHtml+='</div>';
+    }
+    if(nl.risk_level){
+      var rl=nl.risk_level.toUpperCase();
+      var cls2=rl==='HIGH'||rl==='CRITICAL'?'critical':rl==='MEDIUM'?'high':'low';
+      raHtml+='<div class="threat-item '+cls2+'"><div class="threat-label">'+nl.risk_level+' Risk</div>'+(nl.overview_paragraph||'')+'</div>';
+    }
+    ra.innerHTML=raHtml;
+  }
+  var rl2=document.getElementById('recList');rl2.innerHTML='';
+  (nl.recommended_mitigations||[]).forEach(function(m){rl2.innerHTML+='<div class="rec-item">'+m+'</div>'});
+}
+
+function renderResults(){
+  var panel=document.getElementById('resultsPanel');
+  var html='';
+  var m1=allResults.module1||{};
+  var m2=allResults.module2||{};
+  var m3=allResults.module3||{};
+  var m4=allResults.module4||{};
+  var m5=allResults.module5||{};
+  var m6=allResults.module6||{};
+
+  // ── Module 1: ASN & ISP Intelligence ──
+  var asn=m1.asn_details||[];
+  var isp=m1.isp_profile||{};
+  var risk1=m1.ai_risk_summary||{};
+  var prov=m1.provenance||{};
+  if(asn.length||isp.name||prov.sources_queried){
+    html+='<div class="section-title">Module 01 — ASN & ISP Intelligence</div>';
+    if(asn.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">ASN Registrations ('+asn.length+')</div>';
+      html+='<div class="perimeter-detail-grid col2">';
+      asn.forEach(function(a){
+        var displayName=a.asn||a.organization||'Unknown';
+        html+='<div class="perimeter-detail-card">';
+        html+='<div class="pd-header"><div class="pd-icon" style="background:rgba(59,130,246,0.12);color:var(--accent)">AS</div><div class="pd-title">'+displayName+'</div>';
+        html+='<span class="pd-status '+(a.is_primary?'detected':'not-detected')+'">'+(a.is_primary?'Primary':'Secondary')+'</span></div>';
+        html+='<div class="pd-rows">';
+        if(a.asn)html+='<div class="pd-row"><span class="pd-key">ASN</span><span class="pd-val">'+a.asn+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Organization</span><span class="pd-val">'+(a.organization||'N/A')+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Country</span><span class="pd-val">'+(a.country||'N/A')+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Registry</span><span class="pd-val">'+(a.registry||'N/A')+'</span></div>';
+        html+='</div></div>';
+      });
+      html+='</div>';
+    }
+    var prefixes=m1.ip_prefixes||[];
+    if(prefixes.length){
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 6px"><div class="pd-header"><div class="pd-title">IP Prefixes ('+prefixes.length+')</div></div>';
+      html+='<div style="font-size:10px;color:var(--text);word-break:break-all">'+prefixes.slice(0,10).join(', ')+(prefixes.length>10?' ... and '+(prefixes.length-10)+' more':'')+'</div></div>';
+    }
+    // ISP Profile + AI Risk side by side
+    html+='<div class="perimeter-detail-grid col2">';
+    // ISP Profile card
+    var ispName=isp.name||(asn.length&&asn[0].organization?asn[0].organization:'N/A');
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-icon" style="background:rgba(6,182,212,0.12);color:var(--cyan)">ISP</div><div class="pd-title">ISP Profile</div></div>';
+    html+='<div class="pd-rows">';
+    html+='<div class="pd-row"><span class="pd-key">ISP Name</span><span class="pd-val">'+ispName+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">NOC Contact</span><span class="pd-val" style="font-size:9px;word-break:break-all">'+(isp.noc_contact||'N/A')+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">Abuse Contact</span><span class="pd-val" style="font-size:9px;word-break:break-all">'+(isp.abuse_contact||'N/A')+'</span></div>';
+    var peers=isp.peering_relationships||[];
+    html+='<div class="pd-row"><span class="pd-key">Peering</span><span class="pd-val" style="font-size:9px">'+(peers.length?peers.slice(0,5).join(', ')+(peers.length>5?' ...+'+(peers.length-5):''):'N/A')+'</span></div>';
+    html+='</div></div>';
+    // AI Risk Assessment card
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-icon" style="background:rgba(239,68,68,0.12);color:var(--red)">!</div><div class="pd-title">AI Risk Assessment</div></div>';
+    html+='<div class="pd-rows">';
+    html+='<div class="pd-row"><span class="pd-key">Risk Level</span><span class="pd-val"><span class="risk-badge '+((risk1.risk_level||'Low').toUpperCase())+'">'+(risk1.risk_level||'Low')+'</span>';
+    if(risk1.risk_score!=null)html+=' <span style="font-size:9px;color:var(--muted)">('+risk1.risk_score.toFixed(1)+'/10)</span>';
+    html+='</span></div>';
+    if(risk1.summary_text)html+='<div class="pd-row"><span class="pd-key">Summary</span><span class="pd-val" style="font-size:9px;max-width:100%;text-align:left">'+risk1.summary_text+'</span></div>';
+    html+='</div></div>';
+    html+='</div>';
+    // Provenance
+    if(prov&&prov.sources_queried){
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 8px"><div class="pd-header"><div class="pd-title">Provenance</div></div>';
+      html+='<div class="pd-rows">';
+      html+='<div class="pd-row"><span class="pd-key">Sources</span><span class="pd-val" style="font-size:9px">'+(prov.sources_queried||[]).join(', ')+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Execution Time</span><span class="pd-val">'+(prov.execution_time_seconds||0).toFixed(2)+'s</span></div>';
+      html+='</div></div>';
+    }
+  }
+
+  // ── Module 2: Network Reconnaissance ──
+  var subnets=m2.discovered_subnets||[];
+  var hosts=m2.active_hosts||[];
+  var meta=m2.scan_metadata||{};
+  if(hosts.length||subnets.length){
+    html+='<div class="section-title">Module 02 — Network Reconnaissance</div>';
+    // Subnets table
+    if(subnets.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Discovered Subnets ('+subnets.length+')</div>';
+      html+='<div style="padding:0 14px 6px">';
+      html+='<table style="width:100%;border-collapse:collapse;font-size:10px">';
+      html+='<tr style="background:rgba(59,130,246,0.08)"><th style="padding:4px 6px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">CIDR</th><th style="padding:4px 6px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">VLAN</th><th style="padding:4px 6px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">VLAN ID</th></tr>';
+      subnets.forEach(function(s){
+        html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)"><td style="padding:3px 6px;font-family:Courier New,monospace">'+(s.cidr||'')+'</td><td style="padding:3px 6px">'+(s.vlan_detected?'Yes':'No')+'</td><td style="padding:3px 6px">'+(s.estimated_vlan_id||'N/A')+'</td></tr>';
+      });
+      html+='</table></div>';
+    }
+    // Active hosts table
+    if(hosts.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Active Hosts ('+hosts.length+')</div>';
+      html+='<div style="padding:0 14px 6px;overflow-x:auto">';
+      html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+      html+='<tr style="background:rgba(59,130,246,0.08)"><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">IP</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">MAC</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">Method</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">OS</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">TTL</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">WinSize</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">Ports</th></tr>';
+      hosts.forEach(function(h){
+        var fp=h.os_fingerprint||{};
+        html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)">';
+        html+='<td style="padding:2px 4px;font-family:Courier New,monospace;font-weight:600">'+(h.ip_address||'')+'</td>';
+        html+='<td style="padding:2px 4px;font-size:8px">'+(h.mac_address||'N/A')+'</td>';
+        html+='<td style="padding:2px 4px">'+(h.discovery_method||'')+'</td>';
+        html+='<td style="padding:2px 4px">'+(fp.predicted_os||'Unknown')+'</td>';
+        html+='<td style="padding:2px 4px">'+(fp.initial_ttl||'')+'</td>';
+        html+='<td style="padding:2px 4px">'+(fp.tcp_window_size||'')+'</td>';
+        html+='<td style="padding:2px 4px">'+(h.open_ports||[]).length+'</td>';
+        html+='</tr>';
+      });
+      html+='</table></div>';
+    }
+    // Host detail cards
+    if(hosts.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Host Details</div>';
+      hosts.forEach(function(h){
+        var fp=h.os_fingerprint||{};
+        var ports=h.open_ports||[];
+        html+='<div class="perimeter-detail-card" style="margin:0 14px 4px">';
+        html+='<div class="pd-header"><div class="pd-title" style="font-family:Courier New,monospace">'+h.ip_address+'</div>';
+        html+='<span class="pd-status detected" style="font-size:8px">'+(h.mac_address||'No MAC')+'</span></div>';
+        html+='<div class="pd-rows">';
+        html+='<div class="pd-row"><span class="pd-key">Discovery</span><span class="pd-val">'+(h.discovery_method||'N/A')+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">OS</span><span class="pd-val">'+(fp.predicted_os||'Unknown')+' (TTL='+((fp.initial_ttl!=null)?fp.initial_ttl:'?')+', WinSize='+(fp.tcp_window_size||'?')+')</span></div>';
+        if(ports.length){
+          var portStrs=ports.map(function(p){return '<span class="port-badge">'+p.port+'/'+(p.protocol||'tcp')+'/'+(p.service||'?')+'</span>'}).join(' ');
+          html+='<div class="pd-row"><span class="pd-key">Open Ports ('+ports.length+')</span><span class="pd-val">'+portStrs+'</span></div>';
+        }
+        html+='</div></div>';
+      });
+    }
+    // Open ports summary table
+    var allPorts=[];
+    hosts.forEach(function(h){
+      (h.open_ports||[]).forEach(function(p){allPorts.push({ip:h.ip_address,port:p})});
+    });
+    if(allPorts.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Open Ports Summary</div>';
+      html+='<div style="padding:0 14px 6px;overflow-x:auto">';
+      html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+      html+='<tr style="background:rgba(59,130,246,0.08)"><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">IP</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">Port</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">Proto</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">Service</th><th style="padding:3px 4px;text-align:left;color:var(--accent2);font-weight:700;border-bottom:1px solid var(--border)">Banner</th></tr>';
+      allPorts.forEach(function(item){
+        var p=item.port;var banner=(p.banner||'');
+        if(banner.length>50)banner=banner.substring(0,50)+'…';
+        html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)">';
+        html+='<td style="padding:2px 4px;font-family:Courier New,monospace">'+item.ip+'</td>';
+        html+='<td style="padding:2px 4px">'+p.port+'</td>';
+        html+='<td style="padding:2px 4px">'+(p.protocol||'tcp')+'</td>';
+        html+='<td style="padding:2px 4px">'+(p.service||'')+'</td>';
+        html+='<td style="padding:2px 4px;font-size:8px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(p.banner||'')+'">'+banner+'</td>';
+        html+='</tr>';
+      });
+      html+='</table></div>';
+    }
+    // OS Distribution
+    var osMap={};
+    hosts.forEach(function(h){
+      var os=(h.os_fingerprint||{}).predicted_os||'Unknown';
+      if(!osMap[os])osMap[os]=[];
+      osMap[os].push(h.ip_address);
+    });
+    var osKeys=Object.keys(osMap);
+    if(osKeys.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">OS Distribution Summary</div>';
+      html+='<div style="padding:0 14px 6px">';
+      osKeys.sort(function(a,b){return osMap[b].length-osMap[a].length});
+      osKeys.forEach(function(os){
+        var ips=osMap[os];var ipList=ips.slice(0,5).join(', ');
+        if(ips.length>5)ipList+=' ... (+'+(ips.length-5)+' more)';
+        html+='<div class="os-dist-row"><span class="os-dist-name">'+os+'</span><div class="os-dist-bar-bg"><div class="os-dist-bar" style="width:'+Math.round((ips.length/hosts.length)*100)+'%;background:linear-gradient(90deg,var(--accent),var(--cyan))"></div></div><span class="os-dist-count">'+ips.length+'</span></div>';
+        html+='<div style="font-size:9px;color:var(--muted);padding:0 0 4px 78px">'+ipList+'</div>';
+      });
+      html+='</div>';
+    }
+    // Scan metadata
+    if(meta&&meta.scan_duration_seconds){
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 8px"><div class="pd-header"><div class="pd-title">Scan Metadata</div></div>';
+      html+='<div class="pd-rows">';
+      html+='<div class="pd-row"><span class="pd-key">Stealth Mode</span><span class="pd-val">'+(meta.stealth_mode_enabled?'Enabled':'Disabled')+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Total Hosts</span><span class="pd-val">'+(meta.total_hosts_found||0)+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Duration</span><span class="pd-val">'+(meta.scan_duration_seconds||0).toFixed(2)+'s</span></div>';
+      html+='</div></div>';
+    }
+  }
+
+  // ── Module 3: Security Perimeter Detection ──
+  var defs=m3.perimeter_defenses||{};
+  var fw=defs.firewall||{};
+  var ids=defs.ids_ips||{};
+  var dmz=defs.dmz||{};
+  var waf=defs.waf||{};
+  var ev=m3.evasion_benchmarks||{};
+  var aiPred=m3.ai_detection_prediction||{};
+  var posture=m3.overall_security_posture||{};
+  html+='<div class="section-title">Module 03 — Security Perimeter Detection</div>';
+  html+='<div class="perimeter-detail-grid col2">';
+
+  // Firewall
+  html+='<div class="perimeter-detail-card">';
+  html+='<div class="pd-header"><div class="pd-icon" style="background:rgba(239,68,68,0.12);color:var(--red)">FW</div><div class="pd-title">Firewall Detection</div>';
+  html+='<span class="pd-status '+(fw.detected?'detected':'not-detected')+'">'+(fw.detected?'Detected':'Not Detected')+'</span></div>';
+  html+='<div class="pd-rows">';
+  html+='<div class="pd-row"><span class="pd-key">Type</span><span class="pd-val">'+(fw.type||'N/A')+'</span></div>';
+  html+='<div class="pd-row"><span class="pd-key">Filtering</span><span class="pd-val">'+(fw.filtering_behavior||'N/A')+'</span></div>';
+  // Analysis text
+  var fwAnalysis='No firewall detected. The target appears to respond to all probes without filtering.';
+  if(fw.detected){
+    if((fw.filtering_behavior||'').toLowerCase().indexOf('stateful')>=0)fwAnalysis='Stateful firewall detected. Maintains connection state tables and blocks unsolicited inbound packets.';
+    else fwAnalysis='Firewall detected ('+(fw.type||'unknown')+') with '+(fw.filtering_behavior||'unknown')+' filtering behavior.';
+  }
+  html+='<div class="pd-row"><span class="pd-key">Analysis</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+fwAnalysis+'</span></div>';
+  html+='</div></div>';
+
+  // Firewall probe details
+  var fwD=fw.details||{};
+  var ackR=fwD.ack_responses||[];
+  var rstR=fwD.rst_responses||[];
+  if(ackR.length||rstR.length){
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">Firewall Probes</div></div>';
+    html+='<div style="overflow-x:auto">';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+    html+='<tr style="background:rgba(239,68,68,0.06)"><th style="padding:2px 3px;text-align:left;color:var(--red2);font-weight:700;border-bottom:1px solid var(--border)">Port</th><th style="padding:2px 3px;text-align:left;color:var(--red2);font-weight:700;border-bottom:1px solid var(--border)">ACK Resp</th><th style="padding:2px 3px;text-align:left;color:var(--red2);font-weight:700;border-bottom:1px solid var(--border)">TTL</th><th style="padding:2px 3px;text-align:left;color:var(--red2);font-weight:700;border-bottom:1px solid var(--border)">RST Resp</th></tr>';
+    for(var i=0;i<Math.max(ackR.length,rstR.length);i++){
+      var a=ackR[i]||{};var r=rstR[i]||{};
+      html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)">';
+      html+='<td style="padding:2px 3px">'+(a.port||r.port||'')+'</td>';
+      html+='<td style="padding:2px 3px">'+(a.response_type||'—')+'</td>';
+      html+='<td style="padding:2px 3px">'+((a.ttl!=null)?a.ttl:'—')+'</td>';
+      html+='<td style="padding:2px 3px">'+(r.response_type||'—')+'</td>';
+      html+='</tr>';
+    }
+    html+='</table></div></div>';
+  }
+
+  // IDS/IPS
+  html+='<div class="perimeter-detail-card">';
+  html+='<div class="pd-header"><div class="pd-icon" style="background:rgba(249,115,22,0.12);color:var(--orange)">IPS</div><div class="pd-title">IDS/IPS Detection</div>';
+  html+='<span class="pd-status '+(ids.detected?'detected':'not-detected')+'">'+(ids.detected?'Detected':'Not Detected')+'</span></div>';
+  html+='<div class="pd-rows">';
+  html+='<div class="pd-row"><span class="pd-key">Action</span><span class="pd-val">'+(ids.action_observed||'N/A')+'</span></div>';
+  var idsAnalysis='No IDS/IPS response detected.';
+  if(ids.detected){
+    if((ids.action_observed||'').indexOf('TCP-RST')>=0)idsAnalysis='IDS/IPS detected via TCP-RST injection. Sends RST packets to terminate suspicious connections — hallmark of inline IPS.';
+    else idsAnalysis='IDS/IPS detected with action: '+ids.action_observed+'. Active threat detection.';
+  }
+  html+='<div class="pd-row"><span class="pd-key">Analysis</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+idsAnalysis+'</span></div>';
+  html+='</div></div>';
+
+  // IDS/IPS probe details
+  var idsD=ids.details||{};
+  var probes=idsD.probe_results||[];
+  if(probes.length){
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">IDS/IPS Probe Results</div></div>';
+    html+='<div style="overflow-x:auto">';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+    html+='<tr style="background:rgba(249,115,22,0.06)"><th style="padding:2px 3px;text-align:left;color:var(--orange);font-weight:700;border-bottom:1px solid var(--border)">Port</th><th style="padding:2px 3px;text-align:left;color:var(--orange);font-weight:700;border-bottom:1px solid var(--border)">Probe</th><th style="padding:2px 3px;text-align:left;color:var(--orange);font-weight:700;border-bottom:1px solid var(--border)">Response</th><th style="padding:2px 3px;text-align:left;color:var(--orange);font-weight:700;border-bottom:1px solid var(--border)">Size</th><th style="padding:2px 3px;text-align:left;color:var(--orange);font-weight:700;border-bottom:1px solid var(--border)">Details</th></tr>';
+    probes.forEach(function(p){
+      html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)">';
+      html+='<td style="padding:2px 3px">'+p.port+'</td>';
+      html+='<td style="padding:2px 3px">'+p.signature+'</td>';
+      html+='<td style="padding:2px 3px">'+p.response_type+'</td>';
+      html+='<td style="padding:2px 3px">'+(p.response_size||'')+'</td>';
+      html+='<td style="padding:2px 3px;font-size:8px;color:var(--muted)">'+(p.details||'')+'</td>';
+      html+='</tr>';
+    });
+    html+='</table></div>';
+    // RST injection summary
+    html+='<div class="pd-rows" style="margin-top:4px">';
+    html+='<div class="pd-row"><span class="pd-key">RST Injection</span><span class="pd-val" style="color:'+(idsD.rst_injection_detected?'var(--red)':'var(--green)')+'">'+(idsD.rst_injection_detected?'Detected':'Not Detected')+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">RST Count</span><span class="pd-val">'+(idsD.rst_count||0)+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">Dropped Packets</span><span class="pd-val">'+(idsD.drop_count||0)+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">ICMP Responses</span><span class="pd-val">'+(idsD.icmp_count||0)+'</span></div>';
+    html+='</div></div>';
+  }
+
+  // DMZ
+  html+='<div class="perimeter-detail-card">';
+  html+='<div class="pd-header"><div class="pd-icon" style="background:rgba(100,116,139,0.12);color:var(--muted)">DMZ</div><div class="pd-title">DMZ Architecture</div>';
+  html+='<span class="pd-status '+(dmz.detected?'detected':'not-detected')+'">'+(dmz.detected?'Detected':'Not Detected')+'</span></div>';
+  html+='<div class="pd-rows">';
+  html+='<div class="pd-row"><span class="pd-key">Boundary</span><span class="pd-val">'+(dmz.exposure_boundary||'N/A')+'</span></div>';
+  var dmzAnalysis='No DMZ architecture detected.';
+  if(dmz.detected)dmzAnalysis='DMZ detected ('+dmz.exposure_boundary+'). Network segmentation exists between trust zones.';
+  html+='<div class="pd-row"><span class="pd-key">Analysis</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+dmzAnalysis+'</span></div>';
+  html+='</div></div>';
+
+  // WAF
+  html+='<div class="perimeter-detail-card">';
+  html+='<div class="pd-header"><div class="pd-icon" style="background:rgba(168,85,247,0.12);color:var(--purple)">WAF</div><div class="pd-title">Web Application Firewall</div>';
+  html+='<span class="pd-status '+(waf.detected?'detected':'not-detected')+'">'+(waf.detected?'Detected':'Not Detected')+'</span></div>';
+  html+='<div class="pd-rows">';
+  html+='<div class="pd-row"><span class="pd-key">Vendor</span><span class="pd-val">'+(waf.vendor||'Unknown')+'</span></div>';
+  var sigs=waf.matched_signatures||[];
+  html+='<div class="pd-row"><span class="pd-key">Signatures</span><span class="pd-val">'+(sigs.length?sigs.join(', '):'None')+'</span></div>';
+  var wafAnalysis='No WAF signatures detected.';
+  if(waf.detected)wafAnalysis='WAF detected (vendor: '+waf.vendor+'). Responds to web attack signatures.';
+  html+='<div class="pd-row"><span class="pd-key">Analysis</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+wafAnalysis+'</span></div>';
+  html+='</div></div>';
+  html+='</div>';
+
+  // Evasion benchmarks + AI prediction + Overall posture
+  html+='<div class="perimeter-detail-grid col2">';
+  if(ev.fragmentation_tested!==undefined){
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">Evasion Benchmarks</div></div>';
+    html+='<div class="pd-rows">';
+    html+='<div class="pd-row"><span class="pd-key">Fragmentation</span><span class="pd-val">'+(ev.fragmentation_tested?'Tested':'Not Tested')+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">Slow-Rate Timing</span><span class="pd-val">'+(ev.slow_rate_timing_effective?'Effective':'Ineffective')+'</span></div>';
+    var mechs=ev.documented_mechanisms||[];
+    html+='<div class="pd-row"><span class="pd-key">Mechanisms</span><span class="pd-val">'+(mechs.length?mechs.join(', '):'None documented')+'</span></div>';
+    html+='</div></div>';
+  }
+  if(aiPred.probe_type_evaluated){
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">AI Detection Prediction</div></div>';
+    html+='<div class="pd-rows">';
+    html+='<div class="pd-row"><span class="pd-key">Probe Type</span><span class="pd-val">'+aiPred.probe_type_evaluated+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">Detection Probability</span><span class="pd-val">'+((aiPred.predicted_detection_probability||0)*100).toFixed(1)+'%</span></div>';
+    if(aiPred.recommendation)html+='<div class="pd-row"><span class="pd-key">Recommendation</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+aiPred.recommendation+'</span></div>';
+    html+='</div></div>';
+  }
+  if(posture.risk_level){
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">Overall Security Posture</div></div>';
+    html+='<div class="pd-rows">';
+    html+='<div class="pd-row"><span class="pd-key">Risk Level</span><span class="pd-val"><span class="risk-badge '+posture.risk_level.toUpperCase()+'">'+posture.risk_level+'</span></span></div>';
+    if(posture.summary)html+='<div class="pd-row"><span class="pd-key">Summary</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+posture.summary+'</span></div>';
+    html+='</div></div>';
+  }
+  html+='</div>';
+
+  // ── Module 4: IoT / Surveillance Fingerprinting ──
+  var iotDevices=m4.surveillance_devices||[];
+  var iotRanges=m4.predicted_ip_ranges||[];
+  var iotSummary=m4.summary||{};
+  if(iotDevices.length||iotRanges.length){
+    html+='<div class="section-title">Module 04 — Surveillance & IoT Fingerprinting</div>';
+    if(iotDevices.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Detected Devices ('+iotDevices.length+')</div>';
+      iotDevices.forEach(function(d){
+        var cves=d.cve_vulnerabilities||[];
+        var protos=d.protocols_detected||[];
+        html+='<div class="perimeter-detail-card" style="margin:0 14px 4px">';
+        html+='<div class="pd-header"><div class="pd-title" style="font-family:Courier New,monospace">'+d.ip_address+'</div>';
+        html+='<span class="ic-type">'+(d.classification||'IoT')+'</span></div>';
+        html+='<div class="pd-rows">';
+        if(d.mac_address)html+='<div class="pd-row"><span class="pd-key">MAC</span><span class="pd-val">'+d.mac_address+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">OUI Vendor</span><span class="pd-val">'+(d.oui_vendor||'Unknown')+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Identified Vendor</span><span class="pd-val">'+(d.identified_vendor||'Unknown')+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Firmware</span><span class="pd-val">'+(d.firmware_version||'Unknown')+'</span></div>';
+        if(protos.length)html+='<div class="pd-row"><span class="pd-key">Protocols</span><span class="pd-val">'+protos.join(', ')+'</span></div>';
+        if(d.http_title)html+='<div class="pd-row"><span class="pd-key">HTTP Title</span><span class="pd-val">'+d.http_title+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Risk Rating</span><span class="pd-val"><span class="risk-badge '+d.risk_rating+'">'+d.risk_rating+'</span></span></div>';
+        if(cves.length){
+          html+='<div class="pd-row"><span class="pd-key">CVEs ('+cves.length+')</span><span class="pd-val">';
+          cves.forEach(function(c){
+            html+='<span class="risk-badge '+(c.cvss_score>=9?'CRITICAL':c.cvss_score>=7?'HIGH':'MEDIUM')+'" style="font-size:8px;padding:1px 4px;margin:1px">'+c.cve_id+' ('+c.cvss_score+')</span>';
+          });
+          html+='</span></div>';
+        }
+        html+='</div></div>';
+      });
+    }
+    if(iotRanges.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Predicted IoT IP Ranges</div>';
+      html+='<div style="padding:0 14px 6px">';
+      iotRanges.forEach(function(r){
+        html+='<div class="perimeter-detail-card" style="margin-bottom:4px"><div class="pd-rows">';
+        html+='<div class="pd-row"><span class="pd-key">CIDR</span><span class="pd-val" style="font-family:Courier New,monospace">'+r.cidr_range+'</span></div>';
+        html+='<div class="pd-row"><span class="pd-key">Probability</span><span class="pd-val">'+((r.probability_score||0)*100).toFixed(1)+'%</span></div>';
+        if(r.rationale)html+='<div class="pd-row"><span class="pd-key">Rationale</span><span class="pd-val" style="font-size:9px">'+r.rationale+'</span></div>';
+        html+='</div></div>';
+      });
+      html+='</div>';
+    }
+    if(iotSummary.total_iot_devices_found){
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 8px"><div class="pd-header"><div class="pd-title">IoT Summary</div></div>';
+      html+='<div class="pd-rows">';
+      html+='<div class="pd-row"><span class="pd-key">Total IoT Devices</span><span class="pd-val">'+iotSummary.total_iot_devices_found+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Critical Risk</span><span class="pd-val" style="color:var(--red)">'+iotSummary.critical_risk_count+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">High Risk</span><span class="pd-val" style="color:var(--orange)">'+iotSummary.high_risk_count+'</span></div>';
+      html+='</div></div>';
+    }
+  }
+
+  // ── Module 5: Wireless Intelligence ──
+  var aps=m5.access_points||[];
+  var clients=m5.enumerated_clients||[];
+  var auth=m5.authentication_analysis||{};
+  var macPoC=m5.mac_cloning_proof_of_concept||{};
+  var wirelessAnomaly=m5.ai_anomaly_detection||{};
+  var hardening=m5.hardening_recommendations||[];
+  if(aps.length||clients.length){
+    html+='<div class="section-title">Module 05 — Wireless Network Intelligence</div>';
+    if(aps.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Access Points ('+aps.length+')</div>';
+      html+='<div class="wireless-list">';
+      aps.forEach(function(ap){
+        var isOpen=(ap.encryption_type||'').indexOf('OPEN')>=0;
+        html+='<div class="wireless-card">';
+        html+='<div class="wc-header"><span class="wc-ssid">'+(ap.ssid||'Hidden')+'</span><span class="wc-enc '+(isOpen?'open':'secure')+'">'+(ap.encryption_type||'Unknown')+'</span></div>';
+        html+='<div class="wc-row"><span style="color:var(--muted)">BSSID</span><span style="font-family:Courier New,monospace;font-size:9px">'+(ap.bssid||'N/A')+'</span></div>';
+        html+='<div class="wc-row"><span style="color:var(--muted)">Channel</span><span>'+(ap.channel||'N/A')+'</span></div>';
+        html+='<div class="wc-row"><span style="color:var(--muted)">Signal</span><span>'+(ap.signal_rssi||0)+' dBm</span></div>';
+        html+='<div class="wc-row"><span style="color:var(--muted)">Vendor</span><span>'+(ap.vendor_oui||'Unknown')+'</span></div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+    if(clients.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Enumerated Clients ('+clients.length+')</div>';
+      html+='<div style="padding:0 14px 6px">';
+      html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+      html+='<tr style="background:rgba(168,85,247,0.08)"><th style="padding:3px 4px;text-align:left;color:var(--purple);font-weight:700;border-bottom:1px solid var(--border)">MAC</th><th style="padding:3px 4px;text-align:left;color:var(--purple);font-weight:700;border-bottom:1px solid var(--border)">IP</th><th style="padding:3px 4px;text-align:left;color:var(--purple);font-weight:700;border-bottom:1px solid var(--border)">Status</th><th style="padding:3px 4px;text-align:left;color:var(--purple);font-weight:700;border-bottom:1px solid var(--border)">Hostname</th><th style="padding:3px 4px;text-align:left;color:var(--purple);font-weight:700;border-bottom:1px solid var(--border)">Last Seen</th></tr>';
+      clients.forEach(function(c){
+        html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)">';
+        html+='<td style="padding:2px 4px;font-family:Courier New,monospace;font-size:8px">'+c.mac_address+'</td>';
+        html+='<td style="padding:2px 4px">'+(c.assigned_ip||'N/A')+'</td>';
+        html+='<td style="padding:2px 4px"><span style="color:'+(c.status==='ACTIVE'?'var(--green)':'var(--muted)')+'">'+c.status+'</span></td>';
+        html+='<td style="padding:2px 4px">'+(c.hostname||'N/A')+'</td>';
+        html+='<td style="padding:2px 4px">'+(c.last_seen_timestamp||'N/A')+'</td>';
+        html+='</tr>';
+      });
+      html+='</table></div>';
+    }
+    // Auth analysis
+    if(auth.primary_auth_method){
+      html+='<div class="perimeter-detail-grid col2">';
+      html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">Authentication Analysis</div></div>';
+      html+='<div class="pd-rows">';
+      var authMethod=auth.primary_auth_method||'Unknown';
+      var isUnknown=authMethod.indexOf('Unknown')>=0||authMethod.indexOf('no APs')>=0;
+      html+='<div class="pd-row"><span class="pd-key">Primary Auth</span><span class="pd-val" style="color:'+(isUnknown?'var(--orange)':'var(--text)')+'">'+authMethod+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">MAC Filtering</span><span class="pd-val" style="color:'+(auth.mac_filtering_detected?'var(--red)':'var(--green)')+'">'+(auth.mac_filtering_detected?'Detected':'Not Detected')+'</span></div>';
+      if(auth.vulnerability_assessment){
+        var vulnText=auth.vulnerability_assessment;
+        var vulnParts=vulnText.split(' | ');
+        html+='<div class="pd-row" style="flex-direction:column;align-items:stretch;gap:3px"><span class="pd-key">Vulnerability Assessment</span>';
+        vulnParts.forEach(function(part){
+          var cls=part.indexOf('CRITICAL')>=0?'critical':part.indexOf('HIGH')>=0?'high':part.indexOf('MEDIUM')>=0?'high':part.indexOf('LOW')>=0?'low':'';
+          html+='<div style="font-size:9px;color:var(--text);padding:2px 0;border-left:2px solid '+(cls==='critical'?'var(--red)':cls==='high'?'var(--orange)':cls==='low'?'var(--green)':'var(--border)')+';padding-left:6px">'+part+'</div>';
+        });
+        html+='</div>';
+      }
+      html+='</div></div>';
+      html+='</div>';
+    }
+    // MAC Cloning PoC
+    if(macPoC&&macPoC.target_inactive_mac){
+      html+='<div class="perimeter-detail-grid col2">';
+      html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-title">MAC Cloning PoC</div></div>';
+      html+='<div class="pd-rows">';
+      html+='<div class="pd-row"><span class="pd-key">Target MAC</span><span class="pd-val" style="font-family:Courier New,monospace;font-size:9px">'+macPoC.target_inactive_mac+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Lab Interface</span><span class="pd-val">'+macPoC.lab_interface_used+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Cloning Success</span><span class="pd-val" style="color:'+(macPoC.cloning_successful?'var(--green)':'var(--red)')+'">'+(macPoC.cloning_successful?'Yes':'No')+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Access Granted</span><span class="pd-val" style="color:'+(macPoC.access_granted_post_clone?'var(--red)':'var(--green)')+'">'+(macPoC.access_granted_post_clone?'Yes':'No')+'</span></div>';
+      html+='</div></div>';
+      html+='</div>';
+    }
+    // AI Anomaly Detection
+    if(wirelessAnomaly.total_devices_clustered){
+      var flagged=wirelessAnomaly.anomalous_devices_flagged||[];
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 6px"><div class="pd-header"><div class="pd-title">AI Anomaly Detection</div></div>';
+      html+='<div class="pd-rows">';
+      html+='<div class="pd-row"><span class="pd-key">Devices Clustered</span><span class="pd-val">'+wirelessAnomaly.total_devices_clustered+'</span></div>';
+      if(flagged.length){
+        html+='<div class="pd-row"><span class="pd-key">Anomalous Devices</span><span class="pd-val">'+flagged.length+' flagged</span></div>';
+        flagged.forEach(function(f){
+          html+='<div class="pd-row"><span class="pd-key" style="padding-left:8px">'+f.mac_address+'</span><span class="pd-val" style="font-size:9px">'+((f.anomaly_score||0)*100).toFixed(1)+'% — '+f.reason+'</span></div>';
+        });
+      }
+      html+='</div></div>';
+    }
+    // Hardening recommendations
+    if(hardening.length){
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 8px"><div class="pd-header"><div class="pd-title">Wireless Hardening Recommendations</div></div>';
+      hardening.forEach(function(r){
+        html+='<div style="font-size:10px;padding:3px 0;color:var(--text)">› '+r+'</div>';
+      });
+      html+='</div>';
+    }
+  }
+
+  // ── Module 6: AI/ML Analytics ──
+  var analytics=m6.ai_analytics_summary||{};
+  var clsList=m6.device_classifications||[];
+  var topo=m6.inferred_topology||{};
+  var nl=m6.executive_nl_summary||{};
+  html+='<div class="section-title">Module 06 — AI/ML Analytics & Risk Scoring</div>';
+  // Analytics overview
+  if(analytics.total_devices_analyzed){
+    html+='<div class="perimeter-detail-grid col2">';
+    html+='<div class="perimeter-detail-card"><div class="pd-header"><div class="pd-icon" style="background:rgba(34,197,94,0.12);color:var(--green)">AI</div><div class="pd-title">Analytics Overview</div></div>';
+    html+='<div class="pd-rows">';
+    html+='<div class="pd-row"><span class="pd-key">Devices Analyzed</span><span class="pd-val">'+analytics.total_devices_analyzed+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">Anomalies Detected</span><span class="pd-val" style="color:var(--red)">'+analytics.anomalies_detected_count+'</span></div>';
+    html+='<div class="pd-row"><span class="pd-key">Health Score</span><span class="pd-val">'+((analytics.network_health_score||0)).toFixed(1)+'/100</span></div>';
+    html+='</div></div>';
+    html+='</div>';
+  }
+  // Device classifications table
+  if(clsList.length){
+    html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Device Classifications ('+clsList.length+')</div>';
+    html+='<div style="padding:0 14px 6px;overflow-x:auto">';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+    html+='<tr style="background:rgba(34,197,94,0.08)"><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">IP</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Type</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Conf</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">OS</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">OS Conf</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Risk</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Cat</th><th style="padding:3px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Anomaly</th></tr>';
+    clsList.forEach(function(c){
+      html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)">';
+      html+='<td style="padding:2px 4px;font-family:Courier New,monospace;font-weight:600">'+c.ip_address+'</td>';
+      html+='<td style="padding:2px 4px">'+c.predicted_device_type+'</td>';
+      html+='<td style="padding:2px 4px">'+((c.classifier_confidence||0)*100).toFixed(0)+'%</td>';
+      html+='<td style="padding:2px 4px">'+c.predicted_os+'</td>';
+      html+='<td style="padding:2px 4px">'+((c.os_confidence||0)*100).toFixed(0)+'%</td>';
+      html+='<td style="padding:2px 4px">'+((c.calculated_risk_score||0)).toFixed(1)+'</td>';
+      html+='<td style="padding:2px 4px"><span class="risk-badge '+c.risk_category+'" style="font-size:8px;padding:1px 4px">'+c.risk_category+'</span></td>';
+      html+='<td style="padding:2px 4px;color:'+(c.is_anomalous?'var(--red)':'var(--muted)')+'">'+(c.is_anomalous?'Yes':'No')+'</td>';
+      html+='</tr>';
+    });
+    html+='</table></div>';
+    // OS Distribution Breakdown
+    var osCounts={};
+    clsList.forEach(function(c){
+      var os=c.predicted_os||'Unknown';
+      if(!osCounts[os])osCounts[os]={count:0,confSum:0,ips:[]};
+      osCounts[os].count++;osCounts[os].confSum+=(c.os_confidence||0);osCounts[os].ips.push(c.ip_address);
+    });
+    var osKeys2=Object.keys(osCounts);
+    if(osKeys2.length){
+      html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">OS Distribution Breakdown</div>';
+      html+='<div style="padding:0 14px 6px">';
+      osKeys2.sort(function(a,b){return osCounts[b].count-osCounts[a].count});
+      osKeys2.forEach(function(os){
+        var o=osCounts[os];var avgConf=o.count>0?o.confSum/o.count:0;
+        var ipList=o.ips.slice(0,5).join(', ');if(o.ips.length>5)ipList+=' ... (+'+(o.ips.length-5)+' more)';
+        html+='<div class="os-dist-row"><span class="os-dist-name">'+os+'</span><div class="os-dist-bar-bg"><div class="os-dist-bar" style="width:'+Math.round((o.count/clsList.length)*100)+'%;background:linear-gradient(90deg,var(--green),var(--cyan))"></div></div><span class="os-dist-count">'+o.count+'</span></div>';
+        html+='<div style="font-size:9px;color:var(--muted);padding:0 0 4px 78px">'+(avgConf*100).toFixed(0)+'% avg — '+ipList+'</div>';
+      });
+      html+='</div>';
+    }
+    // Per-Device Analysis
+    html+='<div style="padding:0 14px 6px;font-size:10px;font-weight:700;color:var(--muted)">Per-Device Analysis</div>';
+    clsList.forEach(function(c){
+      var reasons=c.anomaly_reasons||[];
+      html+='<div class="perimeter-detail-card" style="margin:0 14px 4px">';
+      html+='<div class="pd-header"><div class="pd-title" style="font-family:Courier New,monospace">'+c.ip_address+'</div>';
+      html+='<span class="risk-badge '+c.risk_category+'" style="font-size:8px;padding:1px 5px">'+c.risk_category+'</span></div>';
+      html+='<div class="pd-rows">';
+      html+='<div class="pd-row"><span class="pd-key">Device Type</span><span class="pd-val">'+c.predicted_device_type+'</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Classifier Conf</span><span class="pd-val">'+((c.classifier_confidence||0)*100).toFixed(1)+'%</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Predicted OS</span><span class="pd-val">'+c.predicted_os+' ('+((c.os_confidence||0)*100).toFixed(1)+'%)</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Risk Score</span><span class="pd-val">'+((c.calculated_risk_score||0)).toFixed(1)+'/10.0</span></div>';
+      html+='<div class="pd-row"><span class="pd-key">Anomalous</span><span class="pd-val" style="color:'+(c.is_anomalous?'var(--red)':'var(--muted)')+'">'+(c.is_anomalous?'Yes':'No')+'</span></div>';
+      if(reasons.length)html+='<div class="pd-row"><span class="pd-key">Anomaly Reasons</span><span class="pd-val" style="font-size:9px;text-align:left;max-width:100%">'+reasons.join(', ')+'</span></div>';
+      html+='</div></div>';
+    });
+  }
+  // Inferred Topology
+  var topoNodes=topo.nodes||[];
+  var topoLinks=topo.links||[];
+  if(topoNodes.length){
+    html+='<div class="perimeter-detail-card" style="margin:0 14px 6px"><div class="pd-header"><div class="pd-title">Inferred Topology ('+topoNodes.length+' nodes, '+topoLinks.length+' links)</div></div>';
+    html+='<div style="overflow-x:auto">';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+    html+='<tr style="background:rgba(34,197,94,0.06)"><th style="padding:2px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Node ID</th><th style="padding:2px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Label</th><th style="padding:2px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Type</th></tr>';
+    topoNodes.forEach(function(n){
+      html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)"><td style="padding:2px 4px;font-family:Courier New,monospace">'+n.id+'</td><td style="padding:2px 4px">'+n.label+'</td><td style="padding:2px 4px">'+n.type+'</td></tr>';
+    });
+    html+='</table></div>';
+    if(topoLinks.length){
+      html+='<div style="margin-top:4px;font-size:9px;font-weight:700;color:var(--muted)">Topology Links</div>';
+      html+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+      html+='<tr style="background:rgba(34,197,94,0.06)"><th style="padding:2px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Source</th><th style="padding:2px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Target</th><th style="padding:2px 4px;text-align:left;color:var(--green2);font-weight:700;border-bottom:1px solid var(--border)">Weight</th></tr>';
+      topoLinks.forEach(function(l){
+        html+='<tr style="border-bottom:1px solid rgba(26,39,68,0.2)"><td style="padding:2px 4px">'+l.source+'</td><td style="padding:2px 4px">'+l.target+'</td><td style="padding:2px 4px">'+l.weight+'</td></tr>';
+      });
+      html+='</table>';
+    }
+    html+='</div>';
+  }
+  // Executive NL Summary
+  if(nl.overview_paragraph||(nl.key_threats_identified||[]).length||(nl.recommended_mitigations||[]).length){
+    html+='<div class="perimeter-detail-card" style="margin:0 14px 8px"><div class="pd-header"><div class="pd-title">Executive Summary</div></div>';
+    if(nl.overview_paragraph)html+='<div style="font-size:10px;line-height:1.6;color:var(--text);margin-bottom:6px">'+nl.overview_paragraph+'</div>';
+    var threats=nl.key_threats_identified||[];
+    if(threats.length){
+      html+='<div style="font-size:9px;font-weight:700;color:var(--muted);margin-bottom:3px">Key Threats Identified</div>';
+      threats.forEach(function(t){html+='<div style="font-size:10px;padding:2px 0;color:var(--text)">• '+t+'</div>'});
+    }
+    var mitigations=nl.recommended_mitigations||[];
+    if(mitigations.length){
+      html+='<div style="font-size:9px;font-weight:700;color:var(--muted);margin:6px 0 3px">Recommended Mitigations</div>';
+      mitigations.forEach(function(m){html+='<div style="font-size:10px;padding:2px 0;color:var(--text)">→ '+m+'</div>'});
+    }
+    html+='</div>';
+  }
+
+  if(!html)html='<div class="empty-state"><div class="icon">◉</div>No results available yet</div>';
+  panel.innerHTML=html;
 }
 
 function renderThreats(){
-  const m6=allResults.module6||{};const nl=m6.executive_nl_summary||{};
-  const tl=document.getElementById('threatList');tl.innerHTML='';
-  const threats=nl.key_threats_identified||[];
+  var m6=allResults.module6||{};var nl=m6.executive_nl_summary||{};
+  var tl=document.getElementById('threatList');tl.innerHTML='';
+  var threats=nl.key_threats_identified||[];
   if(!threats.length){tl.innerHTML='<div class="empty-state">No threats identified</div>';return}
-  threats.forEach(t=>{
-    const cls=t.toLowerCase().includes('critical')?'critical':t.toLowerCase().includes('high')?'high':'medium';
-    tl.innerHTML+=`<div class="threat-item ${cls}"><div class="threat-label">${cls}</div>${t}</div>`;
+  threats.forEach(function(t){
+    var cls=t.toLowerCase().includes('critical')?'critical':t.toLowerCase().includes('high')?'high':'medium';
+    tl.innerHTML+='<div class="threat-item '+cls+'"><div class="threat-label">'+cls+'</div>'+t+'</div>';
   });
 }
 
 function renderDeviceList(){
-  const m6=allResults.module6||{};const cls=m6.device_classifications||[];
-  const el=document.getElementById('deviceClassList');
+  var m6=allResults.module6||{};var cls=m6.device_classifications||[];
+  var el=document.getElementById('deviceClassList');
   if(!cls.length){el.innerHTML='<div class="empty-state">No device classifications</div>';return}
   el.innerHTML='';
-  cls.forEach(c=>{
-    el.innerHTML+=`<div class="detail-row"><span class="key">${c.ip_address}</span><span class="val">${c.predicted_device_type||'Unknown'} <span class="risk-badge ${c.risk_category||'LOW'}" style="font-size:9px;padding:2px 6px">${c.risk_category||'LOW'}</span></span></div>`;
+  cls.forEach(function(c){
+    el.innerHTML+='<div class="detail-row"><span class="key">'+c.ip_address+'</span><span class="val">'+(c.predicted_device_type||'Unknown')+' <span class="risk-badge '+(c.risk_category||'LOW')+'" style="font-size:8px;padding:1px 5px">'+(c.risk_category||'LOW')+'</span></span></div>';
   });
 }
 
 function showNodeDetail(nodeId){
-  const m2=allResults.module2||{};const m6=allResults.module6||{};const m4=allResults.module4||{};
-  const hosts=m2.active_hosts||[];const clsMap=m6.device_classifications||[];
-  const host=hosts.find(h=>h.ip_address===nodeId);
-  const cls=clsMap.find(c=>c.ip_address===nodeId);
-  const iot=(m4.surveillance_devices||[]).find(d=>d.ip_address===nodeId);
+  var m2=allResults.module2||{};var m6=allResults.module6||{};var m4=allResults.module4||{};
+  var hosts=m2.active_hosts||[];var clsMap=m6.device_classifications||[];
+  var host=hosts.find(function(h){return h.ip_address===nodeId});
+  var cls=clsMap.find(function(c){return c.ip_address===nodeId});
+  var iot=(m4.surveillance_devices||[]).find(function(d){return d.ip_address===nodeId});
   document.getElementById('modalTitle').textContent=nodeId;
-  let html='';
+  var html='';
   if(host||cls){
-    const h=host||{};const c=cls||{};
-    html+=`<div class="detail-section">Network Identity</div>`;
-    html+=`<div class="detail-row"><span class="key">IP Address</span><span class="val">${nodeId}</span></div>`;
-    if(h.mac_address)html+=`<div class="detail-row"><span class="key">MAC Address</span><span class="val">${h.mac_address}</span></div>`;
-    if(h.discovery_method)html+=`<div class="detail-row"><span class="key">Discovery Method</span><span class="val">${h.discovery_method}</span></div>`;
-    html+=`<div class="detail-section">Classification</div>`;
-    if(c.predicted_device_type)html+=`<div class="detail-row"><span class="key">Device Type</span><span class="val">${c.predicted_device_type}</span></div>`;
-    if(c.predicted_os)html+=`<div class="detail-row"><span class="key">Operating System</span><span class="val">${c.predicted_os} (${Math.round((c.os_confidence||0)*100)}%)</span></div>`;
-    if(c.calculated_risk_score!==undefined)html+=`<div class="detail-row"><span class="key">Risk Score</span><span class="val"><span class="risk-badge ${c.risk_category}">${c.calculated_risk_score}/10.0 ${c.risk_category}</span></span></div>`;
-    if(c.anomalous_devices_flagged||c.is_anomalous)html+=`<div class="detail-row"><span class="key">Anomaly</span><span class="val" style="color:var(--red)">⚠ ${(c.anomaly_reasons||[]).join(', ')}</span></div>`;
+    var h=host||{};var c=cls||{};
+    html+='<div class="detail-section">Network Identity</div>';
+    html+='<div class="detail-row"><span class="key">IP Address</span><span class="val">'+nodeId+'</span></div>';
+    if(h.mac_address)html+='<div class="detail-row"><span class="key">MAC Address</span><span class="val">'+h.mac_address+'</span></div>';
+    if(h.discovery_method)html+='<div class="detail-row"><span class="key">Discovery</span><span class="val">'+h.discovery_method+'</span></div>';
+    html+='<div class="detail-section">Classification</div>';
+    if(c.predicted_device_type)html+='<div class="detail-row"><span class="key">Device Type</span><span class="val">'+c.predicted_device_type+'</span></div>';
+    if(c.predicted_os)html+='<div class="detail-row"><span class="key">OS</span><span class="val">'+c.predicted_os+' ('+Math.round((c.os_confidence||0)*100)+'%)</span></div>';
+    if(c.calculated_risk_score!==undefined)html+='<div class="detail-row"><span class="key">Risk Score</span><span class="val"><span class="risk-badge '+c.risk_category+'">'+c.calculated_risk_score+'/10.0 '+c.risk_category+'</span></span></div>';
+    if(c.is_anomalous)html+='<div class="detail-row"><span class="key">Anomaly</span><span class="val" style="color:var(--red)">⚠ '+(c.anomaly_reasons||[]).join(', ')+'</span></div>';
     if(h.open_ports&&h.open_ports.length){
-      html+=`<div class="detail-section">Open Ports (${h.open_ports.length})</div>`;
-      html+=`<div class="detail-row"><span class="key">Ports</span><span class="val">`;
-      h.open_ports.forEach(p=>{html+=`<span class="port-badge">${p.port}/${p.service||'?'}</span>`});
-      html+=`</span></div>`;
+      html+='<div class="detail-section">Open Ports ('+h.open_ports.length+')</div>';
+      html+='<div class="detail-row"><span class="key">Ports</span><span class="val">';
+      h.open_ports.forEach(function(p){html+='<span class="port-badge">'+p.port+'/'+(p.service||'?')+'</span>'});
+      html+='</span></div>';
     }
-    if(h.os_fingerprint&&h.os_fingerprint.raw_os_string)html+=`<div class="detail-row"><span class="key">OS Fingerprint</span><span class="val" style="font-size:10px">${h.os_fingerprint.raw_os_string}</span></div>`;
+    if(h.os_fingerprint&&h.os_fingerprint.raw_os_string)html+='<div class="detail-row"><span class="key">OS Fingerprint</span><span class="val" style="font-size:9px">'+h.os_fingerprint.raw_os_string+'</span></div>';
   }
   if(iot){
-    html+=`<div class="detail-section">IoT / Surveillance</div>`;
-    html+=`<div class="detail-row"><span class="key">Vendor</span><span class="val">${iot.identified_vendor||'Unknown'}</span></div>`;
-    html+=`<div class="detail-row"><span class="key">Classification</span><span class="val">${iot.classification||'N/A'}</span></div>`;
-    if(iot.confidence_score)html+=`<div class="detail-row"><span class="key">Confidence</span><span class="val">${Math.round(iot.confidence_score*100)}%</span></div>`;
+    html+='<div class="detail-section">IoT / Surveillance</div>';
+    html+='<div class="detail-row"><span class="key">Vendor</span><span class="val">'+(iot.identified_vendor||'Unknown')+'</span></div>';
+    html+='<div class="detail-row"><span class="key">Classification</span><span class="val">'+(iot.classification||'N/A')+'</span></div>';
+    if(iot.confidence_score)html+='<div class="detail-row"><span class="key">Confidence</span><span class="val">'+Math.round(iot.confidence_score*100)+'%</span></div>';
     if(iot.cve_vulnerabilities&&iot.cve_vulnerabilities.length){
-      html+=`<div class="detail-section">CVE Vulnerabilities (${iot.cve_vulnerabilities.length})</div>`;
-      iot.cve_vulnerabilities.forEach(c=>{html+=`<div class="detail-row"><span class="key">${c.cve_id}</span><span class="val"><span class="risk-badge ${c.cvss_score>=9?'CRITICAL':c.cvss_score>=7?'HIGH':'MEDIUM'}">${c.cvss_score}</span></span></div>`});
+      html+='<div class="detail-section">CVEs ('+iot.cve_vulnerabilities.length+')</div>';
+      iot.cve_vulnerabilities.forEach(function(c){html+='<div class="detail-row"><span class="key">'+c.cve_id+'</span><span class="val"><span class="risk-badge '+(c.cvss_score>=9?'CRITICAL':c.cvss_score>=7?'HIGH':'MEDIUM')+'">'+c.cvss_score+'</span></span></div>'});
     }
-    if(iot.possible_device_types)html+=`<div class="detail-row"><span class="key">Possible Types</span><span class="val" style="font-size:10px">${iot.possible_device_types.join(', ')}</span></div>`;
+    if(iot.possible_device_types)html+='<div class="detail-row"><span class="key">Possible Types</span><span class="val" style="font-size:9px">'+iot.possible_device_types.join(', ')+'</span></div>';
   }
-  if(!html)html='<div class="empty-state"><div class="icon">◻</div>No detailed data available for this node.</div>';
+  if(!html)html='<div class="empty-state"><div class="icon">◻</div>No detailed data for this node.</div>';
   document.getElementById('modalBody').innerHTML=html;
   document.getElementById('nodeModal').classList.add('active');
 }
@@ -562,6 +1340,144 @@ function closeModal(){document.getElementById('nodeModal').classList.remove('act
 document.getElementById('nodeModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
 function exportJSON(){if(scanId)window.location='/api/v1/export/json/'+scanId}
 function exportPDF(){if(scanId)window.location='/api/v1/export/pdf/'+scanId}
+
+function renderPipeline(){
+  var panel=document.getElementById('pipelinePanel');
+  if(!panel)return;
+  var m1=allResults.module1||{};var m2=allResults.module2||{};
+  var m3=allResults.module3||{};var m4=allResults.module4||{};
+  var m5=allResults.module5||{};var m6=allResults.module6||{};
+
+  var mods=[
+    {id:1,name:'ASN & ISP Intelligence',color:'var(--accent)',bg:'rgba(59,130,246,0.12)',
+     input:['target_ip'],
+     output:['asn_details','ip_prefixes','isp_profile','ai_risk_summary'],
+     stats:(m1.asn_details||[]).length+' ASN(s), '+(m1.ip_prefixes||[]).length+' prefix(es)'+(m1.isp_profile&&m1.isp_profile.name?', '+m1.isp_profile.name:'')},
+    {id:2,name:'Network Reconnaissance',color:'var(--cyan)',bg:'rgba(6,182,212,0.12)',
+     input:['ip_prefixes','target_ip'],
+     output:['active_hosts','discovered_subnets','scan_metadata'],
+     stats:(m2.active_hosts||[]).length+' host(s), '+(m2.discovered_subnets||[]).length+' subnet(s)'},
+    {id:3,name:'Security Perimeter Detection',color:'var(--red)',bg:'rgba(239,68,68,0.12)',
+     input:['target_ip','active_hosts'],
+     output:['perimeter_defenses','evasion_benchmarks','ai_detection_prediction'],
+     stats:_perimeterStats(m3)},
+    {id:4,name:'IoT/Surveillance Fingerprinting',color:'var(--orange)',bg:'rgba(249,115,22,0.12)',
+     input:['target_subnet','active_hosts'],
+     output:['surveillance_devices','predicted_ip_ranges','summary'],
+     stats:(m4.surveillance_devices||[]).length+' device(s)'},
+    {id:5,name:'Wireless Intelligence',color:'var(--purple)',bg:'rgba(168,85,247,0.12)',
+     input:['active_hosts','discovered_subnets'],
+     output:['access_points','enumerated_clients','authentication_analysis','hardening_recommendations'],
+     stats:(m5.access_points||[]).length+' AP(s), '+(m5.enumerated_clients||[]).length+' client(s)'},
+    {id:6,name:'AI/ML Analytics & Risk Scoring',color:'var(--green)',bg:'rgba(34,197,94,0.12)',
+     input:['all_module_data'],
+     output:['ai_analytics_summary','device_classifications','inferred_topology','executive_nl_summary'],
+     stats:(m6.device_classifications||[]).length+' classified'}
+  ];
+
+  // Get module statuses from scan
+  var modStatus={};
+  if(typeof scanId!=='undefined'&&scanId){
+    // Check live scan status
+    fetch('/api/v1/scan/status/'+scanId).then(function(r){return r.json()}).then(function(d){
+      if(d.modules){
+        Object.keys(d.modules).forEach(function(k){
+          var idx=parseInt(k.replace('module',''));
+          modStatus[idx]=d.modules[k].status;
+        });
+        _updatePipelineNodes(modStatus);
+      }
+    }).catch(function(){});
+  }
+  // Also set from results
+  mods.forEach(function(m){
+    var key='module'+m.id;
+    var data=allResults[key];
+    if(data&&!data.error)modStatus[m.id]='COMPLETE';
+    else if(data&&data.error)modStatus[m.id]='FAILED';
+  });
+
+  var html='<div class="pipeline-container">';
+  html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent2);margin-bottom:12px;text-align:center">Real-Time Data Pipeline</div>';
+
+  mods.forEach(function(m,i){
+    var status=modStatus[m.id]||'PENDING';
+    var statusCls=status.toLowerCase();
+    var arrowCls=(status==='COMPLETE'||status==='RUNNING')?'active':'';
+
+    html+='<div class="pipeline-node" id="pn-'+m.id+'">';
+    html+='<div class="pn-header">';
+    html+='<div class="pn-num" style="background:'+m.bg+';color:'+m.color+'">'+m.id+'</div>';
+    html+='<div class="pn-title" style="color:'+m.color+'">'+m.name+'</div>';
+    html+='<span class="pn-status '+statusCls+'">'+status+'</span>';
+    html+='</div>';
+    html+='<div class="pn-data">';
+    html+='<div style="margin-bottom:3px"><span style="color:var(--muted);font-weight:600">Input:</span> ';
+    m.input.forEach(function(inp){html+='<span class="pn-tag">'+inp+'</span> '});
+    html+='</div>';
+    html+='<div style="margin-bottom:3px"><span style="color:var(--muted);font-weight:600">Output:</span> ';
+    m.output.forEach(function(out){html+='<span class="pn-tag out">'+out+'</span> '});
+    html+='</div>';
+    if(m.stats)html+='<div style="margin-top:3px;color:var(--text);font-weight:600">'+m.stats+'</div>';
+    html+='</div></div>';
+
+    if(i<mods.length-1){
+      html+='<div class="pipeline-arrow '+arrowCls+'"></div>';
+    }
+  });
+
+  // Country detection
+  var countries=_extractCountries(m1);
+  if(countries.length){
+    html+='<div style="margin-top:16px;width:100%;max-width:320px">';
+    html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Geolocation Detection</div>';
+    countries.forEach(function(c){
+      html+='<div class="country-badge" style="margin:2px">'+c+'</div> ';
+    });
+    html+='</div>';
+  }
+
+  html+='</div>';
+  panel.innerHTML=html;
+}
+
+function _perimeterStats(m3){
+  var defs=m3.perimeter_defenses||{};
+  var parts=[];
+  if(defs.firewall&&defs.firewall.detected)parts.push('FW');
+  if(defs.ids_ips&&defs.ids_ips.detected)parts.push('IDS/IPS');
+  if(defs.dmz&&defs.dmz.detected)parts.push('DMZ');
+  if(defs.waf&&defs.waf.detected)parts.push('WAF');
+  return parts.length?parts.join(', '):'None detected';
+}
+
+function _extractCountries(m1){
+  var countries=[];
+  var seen={};
+  (m1.asn_details||[]).forEach(function(a){
+    if(a.country&&!seen[a.country]){
+      seen[a.country]=true;
+      countries.push(a.country);
+    }
+  });
+  return countries;
+}
+
+function _updatePipelineNodes(statusMap){
+  Object.keys(statusMap).forEach(function(k){
+    var idx=parseInt(k);
+    var el=document.getElementById('pn-'+idx);
+    if(!el)return;
+    var st=statusMap[k].toLowerCase();
+    var badge=el.querySelector('.pn-status');
+    if(badge){badge.className='pn-status '+st;badge.textContent=statusMap[k]}
+    var arrow=el.nextElementSibling;
+    if(arrow&&arrow.classList.contains('pipeline-arrow')){
+      if(st==='complete'||st==='running')arrow.classList.add('active');
+      else arrow.classList.remove('active');
+    }
+  });
+}
 </script>
 </body>
 </html>

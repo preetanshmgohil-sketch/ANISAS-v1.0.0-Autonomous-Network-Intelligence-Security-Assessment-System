@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 def enumerate_subnets(
     prefixes: list[str],
     max_prefix_len: int = 28,
+    max_subnets: int = 5,
 ) -> list[str]:
     """Break input CIDR prefixes into smaller actionable subnets.
 
@@ -20,6 +21,7 @@ def enumerate_subnets(
     Args:
         prefixes: List of CIDR strings from Module 1 (e.g., ["8.8.8.0/24"]).
         max_prefix_len: Maximum prefix length to split into (default /28 = 16 hosts).
+        max_subnets: Maximum number of subnets to return (default 5).
 
     Returns:
         List of CIDR strings for scanning.
@@ -43,16 +45,23 @@ def enumerate_subnets(
             # Large block — split into /24s
             for sub in net.subnets(new_prefix=24):
                 result.append(str(sub))
+                if len(result) >= max_subnets:
+                    break
         elif prefix_len <= max_prefix_len:
             # Medium block — split into max_prefix_len
             for sub in net.subnets(new_prefix=max_prefix_len):
                 result.append(str(sub))
+                if len(result) >= max_subnets:
+                    break
         else:
             # Already granular enough
             result.append(str(net))
 
+        if len(result) >= max_subnets:
+            break
+
     logger.info("Enumerated %d scannable subnets from %d prefixes", len(result), len(prefixes))
-    return result
+    return result[:max_subnets]
 
 
 def generate_host_ips(cidr: str) -> list[str]:

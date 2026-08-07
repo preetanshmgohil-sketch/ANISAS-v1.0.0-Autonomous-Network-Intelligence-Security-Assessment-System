@@ -27,7 +27,7 @@ class SecurityPerimeterEngine:
         print(report.model_dump_json(indent=2))
     """
 
-    def __init__(self, timeout: float = 2.0):
+    def __init__(self, timeout: float = 1.5):
         self.timeout = timeout
 
     def run(
@@ -52,8 +52,14 @@ class SecurityPerimeterEngine:
         # Parse input
         target_ip, discovered_ports = self._parse_input(target, module2_data)
 
+        # Fallback: if no target from M2 data, use the original target string
         if not target_ip:
-            raise ValueError(f"Could not determine target IP from input: {target}")
+            import ipaddress
+            try:
+                ipaddress.ip_address(target.strip())
+                target_ip = target.strip()
+            except ValueError:
+                target_ip = target.strip()
 
         # Step 1: Firewall Detection
         logger.info("[1/5] Detecting firewall on %s ...", target_ip)
@@ -168,8 +174,8 @@ class SecurityPerimeterEngine:
                     return self._parse_input(target, data)
                 # Module 1 format — just extract IP
                 return data.get("target_ip", ""), []
-            except (json.JSONDecodeError, FileNotFoundError):
-                pass
+            except (json.JSONDecodeError, FileNotFoundError) as e:
+                logger.debug("Could not parse input file %s: %s", target, e)
 
         # Assume it's a bare IP address
         import ipaddress

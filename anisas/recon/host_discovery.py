@@ -66,8 +66,8 @@ def _arp_discover(ip: str) -> tuple[bool, str | None]:
                     mac = part.strip().replace("-", ":")
                     if len(mac) == 17 and mac.count(":") == 5:
                         return True, mac
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        pass
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        logger.debug("ARP lookup failed for %s: %s", ip, e)
     return False, None
 
 
@@ -90,6 +90,7 @@ def discover_hosts_in_subnet(
     cidr: str,
     stealth: StealthConfig | None = None,
     progress_callback: Callable[[str, str], None] | None = None,
+    max_hosts: int = 20,
 ) -> list[dict]:
     """Discover active hosts within a single subnet using multi-protocol sweeps.
 
@@ -104,8 +105,8 @@ def discover_hosts_in_subnet(
     except ValueError:
         return []
 
-    # Get all usable IPs
-    ip_list = [str(ip) for ip in net.hosts()]
+    # Get all usable IPs — limit to max_hosts for performance
+    ip_list = [str(ip) for ip in net.hosts()][:max_hosts]
 
     if stealth.randomize_host_order:
         ip_list = shuffle_hosts(ip_list)

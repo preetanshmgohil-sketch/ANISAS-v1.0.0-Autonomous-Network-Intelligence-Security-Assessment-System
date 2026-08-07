@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+from datetime import datetime, timezone
 
 from .models import (
     WirelessReport, AccessPoint, EnumeratedClient, AuthAnalysis,
@@ -81,6 +82,7 @@ class WirelessIntelligenceEngine:
 
         # Merge with Module 2 host data if available
         if module2_data:
+            now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
             for host in module2_data.get("active_hosts", []):
                 mac = host.get("mac_address")
                 ip = host.get("ip_address")
@@ -90,6 +92,7 @@ class WirelessIntelligenceEngine:
                         "assigned_ip": ip,
                         "status": "ACTIVE",
                         "hostname": None,
+                        "last_seen_timestamp": now_iso,
                     })
 
         # Deduplicate

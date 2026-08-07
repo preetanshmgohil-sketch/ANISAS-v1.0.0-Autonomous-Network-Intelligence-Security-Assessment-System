@@ -31,7 +31,7 @@ class ActiveHost(BaseModel):
     ip_address: str
     mac_address: str | None = None
     status: Literal["up"] = "up"
-    discovery_method: Literal["ARP", "ICMP", "TCP-SYN"] = "ICMP"
+    discovery_method: Literal["ARP", "ICMP", "TCP-SYN", "RDAP"] = "ICMP"
     os_fingerprint: OSFingerprint = Field(default_factory=OSFingerprint)
     open_ports: list[OpenPort] = Field(default_factory=list)
 

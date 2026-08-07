@@ -12,12 +12,15 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-# Well-known OS TTL ranges
+# Well-known OS TTL ranges (ordered by specificity)
 _TTL_RANGES: list[tuple[int, int, str]] = [
-    (254, 255, "Cisco/Network"),
+    (254, 255, "Solaris/AIX/HP-UX"),
+    (252, 253, "Cisco IOS"),
     (127, 128, "Windows"),
-    (63, 64, "Linux/Unix/IoT"),
-    (31, 32, "Some Embedded"),
+    (63, 64, "Linux/Unix"),
+    (60, 62, "macOS/FreeBSD"),
+    (31, 32, "Embedded/RTOS"),
+    (1, 30, "Ultra-Light Embedded"),
 ]
 
 # Common ports for TCP-SYN host discovery
@@ -89,12 +92,41 @@ def estimate_ttl_range(ttl: int) -> tuple[int, int] | None:
 
 
 def classify_os_by_ttl(ttl: int) -> str:
-    """Classify OS category based on observed initial TTL."""
+    """Classify OS category based on observed initial TTL.
+
+    Uses TTL value and common defaults:
+      - 255: Solaris, AIX, HP-UX, Cisco IOS, Juniper, some BSDs
+      - 128: Windows (all versions), some embedded
+      - 64:  Linux, macOS, FreeBSD, Android, iOS, most Unix-like
+      - 32:  Embedded/RTOS (VxWorks, FreeRTOS, etc.)
+      - 60-62: macOS (observed on some macOS versions)
+    """
+    # Exact matches first
+    if ttl == 255:
+        return "Solaris/AIX/HP-UX/Cisco"
+    if ttl == 254:
+        return "Cisco/Network Appliance"
+    if ttl == 128:
+        return "Windows"
+    if ttl == 64:
+        return "Linux/Unix"
+    if ttl == 32:
+        return "Embedded/RTOS"
+
+    # Range-based fallback
     for low, high, os_name in _TTL_RANGES:
         if low <= ttl <= high:
             return os_name
+
+    # Heuristic for unusual TTLs
     if ttl > 128:
-        return "Embedded/Network"
+        return "Network Appliance"
+    if ttl > 64:
+        return "Unknown (Likely Windows)"
+    if ttl > 32:
+        return "Unknown (Likely Unix-like)"
+    if ttl > 0:
+        return "Embedded/Unknown"
     return "Unknown"
 
 
@@ -124,7 +156,7 @@ def tcp_connect_with_ttl(
             if data:
                 banner = data.decode("utf-8", errors="replace").strip()[:256]
         except (socket.timeout, OSError):
-            pass
+            pass  # banner read timeout — expected during stealth scan
 
         sock.close()
         return True, None, None, banner
