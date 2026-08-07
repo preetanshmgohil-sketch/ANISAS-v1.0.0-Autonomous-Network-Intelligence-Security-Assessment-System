@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from datetime import datetime
 
 from reportlab.lib import colors
@@ -29,12 +30,14 @@ def generate_json(report: ASNIntelligenceReport, output_path: str | None = None)
 
     Returns the JSON string.
     """
+    start = time.monotonic()
     json_str = report.model_dump_json(indent=2)
     if output_path:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(json_str)
-        logger.info("JSON report written to %s", output_path)
+        elapsed = time.monotonic() - start
+        logger.info("JSON report written to %s (%.3f seconds)", output_path, elapsed)
     return json_str
 
 
@@ -105,6 +108,7 @@ def _risk_style(level: str, styles: dict[str, ParagraphStyle]) -> ParagraphStyle
 
 def generate_pdf(report: ASNIntelligenceReport, output_path: str) -> None:
     """Generate a professional PDF intelligence report."""
+    start = time.monotonic()
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     doc = SimpleDocTemplate(
         output_path,
@@ -223,4 +227,5 @@ def generate_pdf(report: ASNIntelligenceReport, output_path: str) -> None:
     ))
 
     doc.build(story)
-    logger.info("PDF report written to %s", output_path)
+    elapsed = time.monotonic() - start
+    logger.info("PDF report written to %s (%.3f seconds)", output_path, elapsed)
