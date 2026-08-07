@@ -5,6 +5,7 @@ Run: python scripts/test_asn_resolver.py
 from __future__ import annotations
 
 import asyncio
+import urllib.parse
 
 from anisas import asn_resolver as ar
 from anisas import cache as cache_mod
@@ -39,8 +40,25 @@ class FakeClient:
 
     async def get(self, url, params=None, timeout=None, **kwargs):
         self.calls.append((url, params))
-        for prefix, resp in self.mapping.items():
-            if url.startswith(prefix):
+        # parse request host
+        parsed = urllib.parse.urlparse(url)
+        req_host = (parsed.netloc or "").lower()
+        if ':' in req_host:
+            req_host = req_host.split(':', 1)[0]
+
+        for key, resp in self.mapping.items():
+            # mapping key may be a full URL or just a hostname
+            mp = urllib.parse.urlparse(key)
+            if mp.netloc:
+                map_host = mp.netloc.lower()
+                if ':' in map_host:
+                    map_host = map_host.split(':', 1)[0]
+            else:
+                map_host = key.lower()
+                if ':' in map_host:
+                    map_host = map_host.split(':', 1)[0]
+
+            if req_host == map_host or req_host.endswith('.' + map_host):
                 return resp
         return FakeResponse(json_data={})
 

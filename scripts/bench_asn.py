@@ -5,6 +5,7 @@ Run: python scripts/bench_asn.py
 from __future__ import annotations
 
 import asyncio
+import urllib.parse
 import time
 import tracemalloc
 
@@ -41,8 +42,24 @@ class SlowFakeClient:
     async def get(self, url, params=None, timeout=None, **kwargs):
         # simulate network latency
         await asyncio.sleep(self.delay)
-        for prefix, resp in self.mapping.items():
-            if url.startswith(prefix):
+        # parse request host
+        parsed = urllib.parse.urlparse(url)
+        req_host = (parsed.netloc or "").lower()
+        if ':' in req_host:
+            req_host = req_host.split(':', 1)[0]
+
+        for key, resp in self.mapping.items():
+            mp = urllib.parse.urlparse(key)
+            if mp.netloc:
+                map_host = mp.netloc.lower()
+                if ':' in map_host:
+                    map_host = map_host.split(':', 1)[0]
+            else:
+                map_host = key.lower()
+                if ':' in map_host:
+                    map_host = map_host.split(':', 1)[0]
+
+            if req_host == map_host or req_host.endswith('.' + map_host):
                 return resp
         return FakeResponse(json_data={})
 
