@@ -73,18 +73,52 @@ def _keyword_risk_assessment(text: str) -> tuple[str, str]:
 
 
 def _nlp_risk_assessment(text: str, isp_name: str) -> tuple[str, str]:
-    """Use Hugging Face NLP model to generate a risk summary."""
+    """Use Hugging Face NLP model to generate a risk summary.
+
+    This wrapper applies a runtime timeout and attempts to limit CPU threads used by
+    the underlying frameworks (torch/OpenMP) to reduce risk of resource exhaustion.
+    On timeout or error, falls back to keyword-based analysis.
+    """
     global _summarizer
+    INFERENCE_TIMEOUT = int(__import__('os').getenv('ANISAS_INFERENCE_TIMEOUT', '5'))
+    MAX_INFERENCE_THREADS = int(__import__('os').getenv('ANISAS_MAX_THREADS', '1'))
     try:
         if _summarizer is None:
             from transformers import pipeline
             logger.info("Loading NLP model: %s", MODEL_NAME)
-            _summarizer = pipeline("sentiment-analysis", model=MODEL_NAME)
+            # Try to limit torch/OpenMP threads if available
+            try:
+                import torch
+                torch.set_num_threads(MAX_INFERENCE_THREADS)
+                torch.set_num_interop_threads(MAX_INFERENCE_THREADS)
+            except Exception:
+                # Ignore if torch not available at load time
+                logger.debug("Could not set torch thread limits; proceeding without them")
+            # Force CPU device (-1) unless user configured otherwise
+            _summarizer = pipeline("sentiment-analysis", model=MODEL_NAME, device=-1)
             logger.info("NLP model loaded successfully")
 
         # Truncate text to model max length
         truncated = text[:512]
-        result = _summarizer(truncated)
+
+        # Run inference in a thread with a timeout to avoid hangs
+        import concurrent.futures
+
+        def run_inference():
+            try:
+                return _summarizer(truncated)
+            except Exception as e:
+                # Re-raise to be caught by outer except
+                raise
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(run_inference)
+            try:
+                result = future.result(timeout=INFERENCE_TIMEOUT)
+            except concurrent.futures.TimeoutError:
+                logger.warning("NLP inference timed out after %s seconds; falling back to keyword analysis", INFERENCE_TIMEOUT)
+                return _keyword_risk_assessment(text)
+
         sentiment = result[0].get("label", "Neutral").lower()
 
         # Map sentiment to risk level

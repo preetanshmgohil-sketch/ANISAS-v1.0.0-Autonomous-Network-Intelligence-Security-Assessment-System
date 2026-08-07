@@ -21,6 +21,7 @@ from reportlab.platypus import (
 )
 
 from .models import ASNIntelligenceReport
+from .sanitizer import sanitize_model
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ def generate_json(report: ASNIntelligenceReport, output_path: str | None = None)
     Returns the JSON string.
     """
     start = time.monotonic()
-    json_str = report.model_dump_json(indent=2)
+    sanitized = sanitize_model(report)
+    json_str = sanitized.model_dump_json(indent=2)
     if output_path:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
@@ -109,6 +111,8 @@ def _risk_style(level: str, styles: dict[str, ParagraphStyle]) -> ParagraphStyle
 def generate_pdf(report: ASNIntelligenceReport, output_path: str) -> None:
     """Generate a professional PDF intelligence report."""
     start = time.monotonic()
+    # Sanitize report contents to avoid emitting PII by default
+    report = sanitize_model(report)
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     doc = SimpleDocTemplate(
         output_path,
