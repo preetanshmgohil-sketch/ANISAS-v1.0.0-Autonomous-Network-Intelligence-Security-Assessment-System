@@ -31,7 +31,7 @@ jobs:
           if [ -f pyproject.toml ]; then
             python - <<'PY'
 import tomllib,sys
-p=tomllib.loads(open('pyproject.toml','rb').read())
+p=tomllib.load(open('pyproject.toml','rb'))
 deps=p.get('project',{}).get('dependencies',[])
 open('._py_deps.txt','w').write('\n'.join(deps))
 print('Wrote temporary dep file')
