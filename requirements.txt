@@ -3,6 +3,6 @@ pydantic==2.13.4
 reportlab==5.0.0
 transformers==5.14.1
 torch==2.13.0
-fastapi==0.137.1
+fastapi==0.141.1
 uvicorn==0.49.0
 cachetools==7.1.6
