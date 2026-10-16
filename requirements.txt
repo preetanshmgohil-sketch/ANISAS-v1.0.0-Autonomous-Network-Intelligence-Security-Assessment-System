@@ -1,5 +1,5 @@
 httpx==0.28.1
-pydantic==2.13.5
+pydantic==2.14.1
 reportlab==5.0.1
 transformers==5.16.1
 torch==2.13.0
